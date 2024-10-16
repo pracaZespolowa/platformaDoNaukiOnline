@@ -20,7 +20,7 @@ function Register({ setUser }) {
     } else {
       setError(
         "Email is required, password must be at least 6 characters long, and passwords must match."
-      );
+      ); //komentarz
     }
   };
 

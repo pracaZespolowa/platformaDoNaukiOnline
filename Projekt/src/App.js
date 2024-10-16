@@ -8,7 +8,7 @@ import {
 import Login from "./Login";
 import Register from "./Register"; // Importuj komponent rejestracji
 import Home from "./Home";
-
+//
 function App() {
   const [user, setUser] = useState(null); // Przechowujemy zalogowanego użytkownika
 

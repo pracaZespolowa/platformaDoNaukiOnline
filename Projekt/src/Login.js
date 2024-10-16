@@ -11,10 +11,13 @@ function Login({ setUser }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s\d@]+$/;
     // Sprawdzenie, czy hasło ma co najmniej 6 znaków
-    if (email && password.length >= 6) {
+    if (email && password.length >= 6 && emailRegex.test(email)) {
       setUser(email); // Przechowuj adres e-mail w stanie App.js
       navigate("/home"); // Przekierowanie na stronę "Home"
+      navigate('/home');
     } else {
       setError(
         "Email is required and password must be at least 6 characters long"

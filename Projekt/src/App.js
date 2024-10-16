@@ -7,7 +7,7 @@ import Home from './Home';
 
 const App = () => {
   const [users, setUsers] = useState([]);
-  //jebac kapusi
+  // 
   useEffect(() => {
       // Zapytanie do serwera
       axios.get('http://localhost:5000/api/users')

@@ -12,7 +12,7 @@ app.use(express.json()); // Do obsługi danych w formacie JSON
 
 // Połączenie z bazą MySQL
 const db = mysql.createConnection({
-    host: 'localhost',    // lub adres serwera MySQL
+    host: 'MaciekMojsa',    // lub adres serwera MySQL
     user: 'Projekt1',         // użytkownik bazy danych MySQL
     password: 'admin', // hasło do bazy danych
     database: 'projekt',// nazwa bazy danych

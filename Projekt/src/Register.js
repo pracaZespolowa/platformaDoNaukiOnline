@@ -1,30 +1,32 @@
+// Register.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./Login.css"; // Importuj style CSS
+import "./Register.css"; // Importuj style CSS
 
-function Login({ setUser }) {
+function Register({ setUser }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Sprawdzenie, czy hasło ma co najmniej 6 znaków
-    if (email && password.length >= 6) {
+    // Sprawdzenie, czy hasło ma co najmniej 6 znaków i czy hasła się zgadzają
+    if (email && password.length >= 6 && password === confirmPassword) {
       setUser(email); // Przechowuj adres e-mail w stanie App.js
       navigate("/home"); // Przekierowanie na stronę "Home"
     } else {
       setError(
-        "Email is required and password must be at least 6 characters long"
+        "Email is required, password must be at least 6 characters long, and passwords must match."
       );
     }
   };
 
   return (
-    <div className="login-container">
-      <h2>Login</h2>
+    <div className="register-container">
+      <h2>Register</h2>
       <form onSubmit={handleSubmit}>
         <div>
           <label htmlFor="email">Email</label>
@@ -46,14 +48,21 @@ function Login({ setUser }) {
             required
           />
         </div>
-        <button type="submit">Log In</button>
+        <div>
+          <label htmlFor="confirmPassword">Confirm Password</label>
+          <input
+            type="password"
+            id="confirmPassword"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
+        </div>
+        <button type="submit">Register</button>
         {error && <p>{error}</p>} {/* Wyświetl błąd */}
-        <button type="button" onClick={() => navigate("/register")}>
-          Sign Up
-        </button>
       </form>
     </div>
   );
 }
 
-export default Login;
+export default Register;

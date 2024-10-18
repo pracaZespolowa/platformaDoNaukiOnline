@@ -7,7 +7,8 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "/../projekt")));
 
-const uri = "mongodb://localhost:27017/";
+const uri =
+  "mongodb+srv://tomekczyz001:PSKFTfk8sYUWYBva@cluster0.b98di.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0/";
 const dbName = "userAuthDB";
 const collections = "users";
 const port = 3000;

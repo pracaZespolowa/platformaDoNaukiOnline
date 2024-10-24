@@ -6,8 +6,12 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "express": "^4.21.1",
+    "md5": "^2.3.0",
+    "mogoose": "^0.0.1-security",
+    "mongodb": "^6.10.0",
     "mysql": "^2.18.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -45,6 +49,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "webpack": "^5.95.0",
     "webpack-cli": "^5.1.4"
   }

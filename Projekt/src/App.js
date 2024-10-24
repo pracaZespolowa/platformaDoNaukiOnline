@@ -6,9 +6,10 @@ import {
   Navigate,
 } from "react-router-dom";
 import Login from "./Login";
-import Register from "./Register"; // Importuj komponent rejestracji
+import Register from "./Register";
 import Home from "./Home";
-//
+import Zarzadzaj from "./zarzadzaj"; // Importuj nowy komponent
+
 function App() {
   const [user, setUser] = useState(null); // Przechowujemy zalogowanego użytkownika
 
@@ -26,6 +27,10 @@ function App() {
         <Route
           path="/home"
           element={user ? <Home user={user} /> : <Navigate to="/" />} // Sprawdzamy, czy użytkownik jest zalogowany
+        />
+        <Route
+          path="/zarzadzaj"
+          element={user ? <Zarzadzaj /> : <Navigate to="/" />} // Nowa trasa do zarządzania kontem
         />
       </Routes>
     </Router>

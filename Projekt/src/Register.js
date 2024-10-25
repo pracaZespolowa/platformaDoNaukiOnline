@@ -1,31 +1,40 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./Register.css"; // Importuj style CSS
+import "./Register.css";
 
 function Register({ setUser }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [role, setRole] = useState(""); // Nowe pole roli
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleRegister = async () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s\d@]+$/;
-    if (email && password.length >= 6 && password === confirmPassword && emailRegex.test(email)) {
+    if (email && password.length >= 6 && password === confirmPassword && emailRegex.test(email) && firstName && lastName && role) {
       try {
         const response = await fetch("http://localhost:3000/register", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ email, password, confirmPassword }),
+          body: JSON.stringify({ email, password, confirmPassword, firstName, lastName, role }),
         });
 
         const data = await response.json();
-        console.log(data); // Sprawdzanie odpowiedzi serwera
+        console.log(data); 
 
         if (response.ok) {
-          setUser(email);
+          // Ustaw użytkownika z odpowiedzi
+          setUser({ 
+            email: data.user.email, 
+            firstName: data.user.firstName, 
+            lastName: data.user.lastName, 
+            role: data.user.role 
+          });
           navigate("/home");
         } else {
           setError(data.error || "Rejestracja nie powiodła się.");
@@ -42,6 +51,26 @@ function Register({ setUser }) {
   return (
     <div className="register-container">
       <h2>Rejestracja</h2>
+      <div>
+        <label htmlFor="firstName">Imię</label>
+        <input
+          type="text"
+          id="firstName"
+          value={firstName}
+          onChange={(e) => setFirstName(e.target.value)}
+          required
+        />
+      </div>
+      <div>
+        <label htmlFor="lastName">Nazwisko</label>
+        <input
+          type="text"
+          id="lastName"
+          value={lastName}
+          onChange={(e) => setLastName(e.target.value)}
+          required
+        />
+      </div>
       <div>
         <label htmlFor="email">Email</label>
         <input
@@ -72,6 +101,28 @@ function Register({ setUser }) {
           required
         />
       </div>
+      <div className="role-selection">
+        <label>
+          <input
+            type="radio"
+            name="role"
+            value="student"
+            checked={role === "student"}
+            onChange={() => setRole("student")}
+          />
+          Uczeń
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="role"
+            value="teacher"
+            checked={role === "teacher"}
+            onChange={() => setRole("teacher")}
+          />
+          Nauczyciel
+        </label>
+      </div>
       <button type="button" onClick={handleRegister}>Zarejestruj</button>
       {error && <p className="error-message">{error}</p>}
     </div>
@@ -79,4 +130,3 @@ function Register({ setUser }) {
 }
 
 export default Register;
-

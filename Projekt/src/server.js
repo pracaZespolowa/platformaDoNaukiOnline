@@ -3,9 +3,13 @@ const { MongoClient } = require("mongodb");
 const bcrypt = require("bcrypt");
 const path = require("path");
 
+
+
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "/../projekt"))); // Ścieżka do statycznych plików
+
+
 
 const uri = "mongodb+srv://tomekczyz001:PSKFTfk8sYUWYBva@cluster0.b98di.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0/";
 const dbName = "userAuthDB";
@@ -26,12 +30,12 @@ async function connectToDb() {
 
 // Endpoint do rejestracji
 app.post("/register", async (req, res) => {
-  const { email, password, confirmPassword } = req.body;
+  const { email, password, confirmPassword, firstName, lastName, role } = req.body;
 
-  console.log("Rejestracja:", { email, password, confirmPassword });
+  console.log("Rejestracja:", { email, password, confirmPassword, firstName, lastName, role });
 
   // Sprawdzenie, czy pola są wypełnione
-  if (!email || !password || !confirmPassword) {
+  if (!email || !password || !confirmPassword || !firstName || !lastName || !role) {
     return res.status(400).json({ error: "Wszystkie pola są wymagane." });
   }
 
@@ -52,7 +56,7 @@ app.post("/register", async (req, res) => {
 
     // Haszowanie hasła i zapis do bazy
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = { email, password: hashedPassword };
+    const newUser = { email, password: hashedPassword, firstName, lastName, role };
 
     await usersCollection.insertOne(newUser);
     console.log("Użytkownik zarejestrowany:", newUser);
@@ -63,7 +67,7 @@ app.post("/register", async (req, res) => {
   }
 });
 
-// Endpoint do logowania
+
 // Endpoint do logowania
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
@@ -86,12 +90,17 @@ app.post("/login", async (req, res) => {
       return res.status(401).json({ error: "Nieprawidłowe hasło." });
     }
 
-    res.status(200).json({ message: "Użytkownik zalogowany pomyślnie." });
+    // Zwróć dane użytkownika
+    res.status(200).json({ 
+      message: "Użytkownik zalogowany pomyślnie.", 
+      user: { email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role } // Przekazujemy potrzebne dane
+    });
   } catch (err) {
     console.error("Błąd podczas logowania:", err);
     res.status(500).json({ error: "Wewnętrzny błąd serwera." });
   }
 });
+
 
 // Uruchomienie serwera
 app.listen(port, () => {

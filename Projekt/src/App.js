@@ -16,6 +16,7 @@ function App() {
   return (
     <Router>
       <Routes>
+        
         <Route
           path="/"
           element={<Login setUser={setUser} />} // Przekazujemy funkcję do ustawiania użytkownika
@@ -26,12 +27,16 @@ function App() {
         />
         <Route
           path="/home"
-          element={user ? <Home user={user} /> : <Navigate to="/" />} // Sprawdzamy, czy użytkownik jest zalogowany
+          element={user ? <Home user={user} setUser={setUser} /> : <Navigate to="/" />} // Przekazujemy setUser do Home
         />
+        
         <Route
           path="/zarzadzaj"
-          element={user ? <Zarzadzaj /> : <Navigate to="/" />} // Nowa trasa do zarządzania kontem
+          element={user ? <Zarzadzaj user={user} /> : <Navigate to="/" />} // Nowa trasa do zarządzania kontem z przekazanym user
         />
+        
+
+
       </Routes>
     </Router>
   );

@@ -1,53 +1,76 @@
-/* Register.css */
 .register-container {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color: #f9f9f9; /* Jasne tło */
+  background-color: #f9f9f9;
   padding: 2rem;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  width: 300px; /* Szerokość formularza */
-  margin: auto; /* Wyśrodkowanie formularza */
-  transition: all 0.3s ease; /* Płynne przejście */
+  width: 320px;
+  margin: auto;
+  transition: all 0.3s ease;
 }
 
-/*asdasda*/
 .register-container h2 {
-  margin-bottom: 1rem; /* Odstęp poniżej nagłówka */
-  color: #333; /* Kolor nagłówka */
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.register-container div {
+  width: 100%;
+  margin-bottom: 1rem;
 }
 
 .register-container label {
-  margin-bottom: 0.5rem; /* Odstęp poniżej etykiet */
-  font-weight: bold; /* Pogrubienie etykiet */
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #333;
+  font-size: 0.9rem;
 }
 
-.register-container input {
-  padding: 0.75rem; /* Padding wewnątrz inputów */
-  margin-bottom: 1rem; /* Odstęp poniżej inputów */
-  border: 1px solid #ccc; /* Kolor ramki */
-  border-radius: 4px; /* Zaokrąglone rogi */
-  width: 100%; /* Szerokość inputów */
-  box-sizing: border-box; /* Umożliwia wliczanie paddingu w szerokość */
+.register-container input[type="text"],
+.register-container input[type="email"],
+.register-container input[type="password"] {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.role-selection {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.role-selection label {
+  display: flex;
+  align-items: center;
+  font-weight: normal;
+  font-size: 0.9rem;
 }
 
 .register-container button {
-  padding: 0.75rem; /* Padding wewnątrz przycisku */
-  background-color: #007bff; /* Kolor tła przycisku */
-  color: white; /* Kolor tekstu */
-  border: none; /* Bez ramki */
-  border-radius: 4px; /* Zaokrąglone rogi */
-  cursor: pointer; /* Kursor wskazujący */
-  transition: background-color 0.3s ease; /* Płynne przejście */
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .register-container button:hover {
-  background-color: #0056b3; /* Ciemniejszy kolor przycisku po najechaniu */
+  background-color: #0056b3;
 }
 
-.register-container p {
-  color: red; /* Kolor błędów */
-  margin: 0; /* Bez marginesów */
+.error-message {
+  color: red;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  text-align: center;
 }

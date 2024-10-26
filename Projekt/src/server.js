@@ -60,7 +60,12 @@ app.post("/register", async (req, res) => {
 
     await usersCollection.insertOne(newUser);
     console.log("Użytkownik zarejestrowany:", newUser);
-    res.status(201).json({ message: "Użytkownik zarejestrowany pomyślnie." });
+    
+    // Zwróć dane użytkownika
+    res.status(201).json({ 
+      message: "Użytkownik zarejestrowany pomyślnie.",
+      user: { email: email, firstName: firstName, lastName: lastName, role: role } // Przekazujemy potrzebne dane
+     });
   } catch (err) {
     console.error("Błąd podczas rejestracji:", err);
     res.status(500).json({ error: "Wewnętrzny błąd serwera." });

@@ -48,6 +48,10 @@ function Register({ setUser }) {
     }
   };
 
+  const handleLogin = () => {
+    navigate("/");
+  }
+
   return (
     <div className="register-container">
       <h2>Rejestracja</h2>
@@ -124,6 +128,7 @@ function Register({ setUser }) {
         </label>
       </div>
       <button type="button" onClick={handleRegister}>Zarejestruj</button>
+      <button type="button" onClick={handleLogin}>Logowanie</button>
       {error && <p className="error-message">{error}</p>}
     </div>
   );

@@ -27,7 +27,12 @@ function Login({ setUser }) {
         const data = await response.json();
 
         if (response.ok) {
-          setUser(email); // Przechowuj email w stanie App.js
+          setUser({
+            email: data.user.email, 
+            firstName: data.user.firstName, 
+            lastName: data.user.lastName, 
+            role: data.user.role 
+          });                               // Przechowuj email w stanie App.js
           navigate("/home"); // Przekierowanie na stronę główną
         } else {
           setError(data.error || "Logowanie nie powiodło się.");
@@ -66,10 +71,10 @@ function Login({ setUser }) {
           />
         </div>
         <button type="submit">Zaloguj</button>
-        {error && <p className="error-message">{error}</p>}
         <button type="button" onClick={() => navigate("/register")}>
           Zarejestruj się
         </button>
+        {error && <p className="error-message">{error}</p>}
       </form>
     </div>
   );

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import {
-  BrowserRouter as Router,
+  HashRouter as Router, // Zmieniono na HashRouter
   Route,
   Routes,
   Navigate,
@@ -16,7 +16,6 @@ function App() {
   return (
     <Router>
       <Routes>
-        
         <Route
           path="/"
           element={<Login setUser={setUser} />} // Przekazujemy funkcję do ustawiania użytkownika
@@ -29,14 +28,10 @@ function App() {
           path="/home"
           element={user ? <Home user={user} setUser={setUser} /> : <Navigate to="/" />} // Przekazujemy setUser do Home
         />
-        
         <Route
           path="/zarzadzaj"
-          element={user ? <Zarzadzaj user={user} /> : <Navigate to="/" />} // Nowa trasa do zarządzania kontem z przekazanym user
+          element={user ? <Zarzadzaj user={user} setUser={setUser} /> : <Navigate to="/" />} // Nowa trasa do zarządzania kontem z przekazanym user
         />
-        
-
-
       </Routes>
     </Router>
   );

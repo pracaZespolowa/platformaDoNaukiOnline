@@ -26,7 +26,7 @@ function Home({ user, setUser }) { // Dodajemy setUser do propsów
           <div className="avatar-placeholder"></div>
           {showOptions && (
             <div className="profile-options">
-              <p className="user-email">{user}</p>
+              <p className="user-email">{user?.email}</p>
               <button onClick={handleManageAccount} className="manage-account-button">
                 Zarządzaj kontem
               </button>
@@ -37,7 +37,7 @@ function Home({ user, setUser }) { // Dodajemy setUser do propsów
           )}
         </div>
       </header>
-      <h1>Witaj w aplikacji, {user?.split("@")[0]}!</h1>
+      <h1>Witaj w aplikacji, {user?.firstName}!</h1>
     </div>
   );
 }

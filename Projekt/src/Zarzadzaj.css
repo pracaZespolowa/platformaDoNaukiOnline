@@ -106,3 +106,17 @@
   width: 24px;
   height: 24px;
 }
+
+.error-message {
+  color: red;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.success-message {
+  color: green;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  text-align: center;
+}

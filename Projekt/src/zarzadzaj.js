@@ -5,6 +5,12 @@ import "./Zarzadzaj.css";
 function Zarzadzaj({ user, setUser }) {
   const navigate = useNavigate();
   const [activeForm, setActiveForm] = useState("dane"); // Ustawienie domyślnego formularza na "dane"
+  const email = user?.email;
+  const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confPassword, setConfPassword] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleBackToHome = () => {
     navigate("/home");
@@ -13,6 +19,39 @@ function Zarzadzaj({ user, setUser }) {
   const handleFormChange = (form) => {
     setActiveForm(form)
   }
+
+  const handlePassChange = async (e) => {
+    e.preventDefault();
+
+    if (newPassword.length >= 6) {          // Wymagania złożoności hasła
+      if (newPassword === confPassword) {
+        try {
+          const response = await fetch("/changePassword", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({email, password, newPassword, confPassword}),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            setSuccess("Pomyślnie zmieniono hasło");
+          } else {
+            setError(data.error || "Zmiana hasła nie powiodła się");
+          }
+        } catch (err) {
+          console.error("Błąd:", err);
+          setError("Nie udało się zmienić hasła. Spróbuj ponownie");
+        }
+      } else {
+        setError("Hasła nie są takie same");
+      }
+    } else {
+      setError("Hasło musi mieć przynajmniej 6 znaków");
+    }
+  };
 
   return (
     <div className="zarzadzaj-container">
@@ -53,19 +92,43 @@ function Zarzadzaj({ user, setUser }) {
               </button>
             </form>
           ) : (
-            <form className="form">
+            <form className="form" onSubmit={handlePassChange}>
               <h2>Zmień hasło</h2>
+              {success && <p className="success-message">{success}</p>}
               <label>
                 Stare hasło
-                <input type="password"></input>
+                <input 
+                  type="password"
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                ></input>
               </label>
               <label>
                 Nowe hasło
-                <input type="password"></input>
+                <input 
+                  type="password"
+                  id="newPassword"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                ></input>
+              </label>
+              <label>
+                Potwierdź hasło
+                <input 
+                  type="password"
+                  id="confPasword"
+                  value={confPassword}
+                  onChange={(e) => setConfPassword(e.target.value)}
+                  required
+                ></input>
               </label>
               <button type="submit" className="confirm-button">
                 Potwierdź
               </button>
+              {error && <p className="error-message">{error}</p>}
             </form>
           )}
         </div>

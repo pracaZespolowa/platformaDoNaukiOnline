@@ -2,6 +2,7 @@ const express = require("express");
 const { MongoClient } = require("mongodb");
 const bcrypt = require("bcrypt");
 const path = require("path");
+const { error } = require("console");
 
 
 
@@ -106,6 +107,56 @@ app.post("/login", async (req, res) => {
   }
 });
 
+// Endpoint do zmiany hasła
+app.post("/changePassword", async (req, res) => {
+  const { email, password, newPassword, confPassword } = req.body;
+
+  // Sprawdzenie czy email został pomyślnie przesłany
+  if (!email) {
+    return res.status(400).json({error: "Błąd podczas pobierania emaila."});
+  }
+
+  // Sprawdzenie czy wszstkie pola są wypełnione
+  if(!password || !newPassword || !confPassword) {
+    return res.status(400).json({error: "Wszystkie pola muszą być wypełnione."});
+  }
+
+  // Sprawdzenie czy oba hasła są takie same
+  if(newPassword != confPassword) {
+    return res.status(400).json({error: "Hasła sie są takie same."});
+  }
+
+  try {
+    const db = await connectToDb();
+    const usersCollection = db.collection(collectionName);
+
+    // Szukanie użytkownika
+    const user = await usersCollection.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ error: "Użytkownik nie znaleziony." });
+    }
+
+    // Sprawdzanie poprawności hasła
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      return res.status(401).json({ error: "Nieprawidłowe hasło." });
+    }
+
+    // Haszowanie nowego hasła i aktualizacja bazy
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+    const filter = { email: email };
+    const update = { $set: { password: hashedNewPassword } };
+    usersCollection.updateOne(filter, update);
+
+    res.status(200).json({ 
+      message: "Pomyślnie zmieniono hasło."
+    });
+  } catch (err) {
+    console.error("Błąd podczas zmiany hasła:", err);
+    res.status(500).json({ error: "Wewnętrzny błąd serwera." });
+  }
+});
 
 // Uruchomienie serwera
 app.listen(port, () => {

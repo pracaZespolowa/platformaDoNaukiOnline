@@ -8,9 +8,9 @@
     justify-content: flex-end; /* Ustawienie elementów w nagłówku na prawo */
     align-items: center;
     padding: 10px;
-    background-color: #f8f8f8;
+    background-color: #f8f8f8; 
   }
-  
+  /* test  */
   .profile {
     position: relative;
     display: flex;

@@ -7,6 +7,7 @@ function Login({ setUser }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const apiUrl = 'http://localhost:4000';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,7 +17,7 @@ function Login({ setUser }) {
     if (email && password.length >= 6 && emailRegex.test(email)) {
       try {
         // Tutaj używamy samego endpointu, bo backend działa na tej samej domenie i porcie.
-        const response = await fetch("/login", {
+        const response = await fetch(`${apiUrl}/login`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -27,12 +28,14 @@ function Login({ setUser }) {
         const data = await response.json();
 
         if (response.ok) {
-          setUser({
+          const userData = { 
             email: data.user.email, 
             firstName: data.user.firstName, 
             lastName: data.user.lastName, 
             role: data.user.role 
-          });                               // Przechowuj email w stanie App.js
+          };
+          setUser(userData);                             // Przechowuj email w stanie App.js
+          localStorage.setItem("user", JSON.stringify(userData)); // Zapisz dane użytkownika
           navigate("/home"); // Przekierowanie na stronę główną
         } else {
           setError(data.error || "Logowanie nie powiodło się.");

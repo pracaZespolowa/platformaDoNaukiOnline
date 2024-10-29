@@ -11,6 +11,7 @@ function Zarzadzaj({ user, setUser }) {
   const [confPassword, setConfPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const apiUrl = 'http://localhost:4000';
 
   const handleBackToHome = () => {
     navigate("/home");
@@ -26,7 +27,7 @@ function Zarzadzaj({ user, setUser }) {
     if (newPassword.length >= 6) {          // Wymagania złożoności hasła
       if (newPassword === confPassword) {
         try {
-          const response = await fetch("/changePassword", {
+          const response = await fetch(`${apiUrl}/changePassword`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

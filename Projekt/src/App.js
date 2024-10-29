@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   BrowserRouter as Router, // Zmieniono na HashRouter
   Route,
@@ -11,7 +11,20 @@ import Home from "./Home";
 import Zarzadzaj from "./zarzadzaj"; // Importuj nowy komponent
 
 function App() {
-  const [user, setUser] = useState(null); // Przechowujemy zalogowanego użytkownika
+  const [user, setUser] = useState(() => {
+    // Sprawdź localStorage i załaduj użytkownika, jeśli istnieje
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+
+  useEffect(() => {
+    // Ustawienie lokalnego użytkownika w localStorage, jeśli istnieje
+    if (user) {
+      localStorage.setItem("user", JSON.stringify(user));
+    } else {
+      localStorage.removeItem("user");
+    }
+  }, [user]);
 
   return (
     <Router>

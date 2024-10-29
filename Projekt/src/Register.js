@@ -11,12 +11,13 @@ function Register({ setUser }) {
   const [role, setRole] = useState(""); // Nowe pole roli
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const apiUrl = 'http://localhost:4000';
 
   const handleRegister = async () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s\d@]+$/;
     if (email && password.length >= 6 && password === confirmPassword && emailRegex.test(email) && firstName && lastName && role) {
       try {
-        const response = await fetch("http://localhost:3000/register", {
+        const response = await fetch(`${apiUrl}/register`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

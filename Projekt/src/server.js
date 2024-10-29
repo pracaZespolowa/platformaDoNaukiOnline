@@ -3,6 +3,7 @@ const { MongoClient } = require("mongodb");
 const bcrypt = require("bcrypt");
 const path = require("path");
 const { error } = require("console");
+const cors = require('cors');
 
 
 
@@ -10,12 +11,21 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "/../projekt"))); // Ścieżka do statycznych plików
 
+const corsOptions = {
+  origin: 'http://localhost:3000', // Zmień na URL swojej aplikacji front-end
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true, // Czy zezwalać na przesyłanie ciasteczek
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}
+
+app.use(cors(corsOptions));
+
 
 
 const uri = "mongodb+srv://tomekczyz001:PSKFTfk8sYUWYBva@cluster0.b98di.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0/";
 const dbName = "userAuthDB";
 const collectionName = "users";
-const port = 3000;
+const port = 4000;
 
 // Funkcja do połączenia z bazą danych
 async function connectToDb() {
@@ -30,7 +40,7 @@ async function connectToDb() {
 }
 
 // Endpoint do rejestracji
-app.post("/register", async (req, res) => {
+app.post("/register", cors(corsOptions), async (req, res) => {
   const { email, password, confirmPassword, firstName, lastName, role } = req.body;
 
   console.log("Rejestracja:", { email, password, confirmPassword, firstName, lastName, role });
@@ -75,7 +85,7 @@ app.post("/register", async (req, res) => {
 
 
 // Endpoint do logowania
-app.post("/login", async (req, res) => {
+app.post("/login", cors(corsOptions), async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -108,7 +118,7 @@ app.post("/login", async (req, res) => {
 });
 
 // Endpoint do zmiany hasła
-app.post("/changePassword", async (req, res) => {
+app.post("/changePassword", cors(corsOptions), async (req, res) => {
   const { email, password, newPassword, confPassword } = req.body;
 
   // Sprawdzenie czy email został pomyślnie przesłany

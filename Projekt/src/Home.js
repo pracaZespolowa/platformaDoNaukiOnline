@@ -1,10 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Home.css";
 
 function Home({ user, setUser }) { // Dodajemy setUser do propsów
   const [showOptions, setShowOptions] = useState(false);
   const navigate = useNavigate();
+
+  // Sprawdź, czy użytkownik jest już zalogowany
+  useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+      navigate("/home"); // Przekieruj do strony głównej, jeśli użytkownik jest już zalogowany
+    }
+  }, [navigate, setUser]);
 
   const toggleOptions = () => {
     setShowOptions((prev) => !prev);
@@ -16,6 +25,7 @@ function Home({ user, setUser }) { // Dodajemy setUser do propsów
 
   const handleLogout = () => {
     setUser(null); // Wylogowanie: ustawienie user na null
+    localStorage.removeItem("user"); // Wyczyść localStorage
     navigate("/"); // Przekierowanie na stronę główną
   };
 

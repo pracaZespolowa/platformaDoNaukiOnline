@@ -199,9 +199,9 @@ app.post("/changePassword", async (req, res) => {
 
 // Endpoint do aktualizacji danych użytkownika
 app.post("/updateUser", cors(corsOptions), async (req, res) => {
-  const { email, firstName, lastName } = req.body;
+  const { email, firstName, lastName, role } = req.body;
 
-  if (!email || !firstName || !lastName) {
+  if (!email || !firstName || !lastName || !role) {
     return res.status(400).json({ error: "Wszystkie pola są wymagane." });
   }
 
@@ -217,7 +217,7 @@ app.post("/updateUser", cors(corsOptions), async (req, res) => {
 
     // Aktualizacja danych w bazie
     const filter = { email: email };
-    const update = { $set: { firstName, lastName } };
+    const update = { $set: { firstName, lastName, role } };
     await usersCollection.updateOne(filter, update);
 
     res.status(200).json({

@@ -6,6 +6,7 @@ function Zarzadzaj({ user, setUser }) {
   const navigate = useNavigate();
   const [activeForm, setActiveForm] = useState("dane"); // Ustawienie domyślnego formularza na "dane"
   const email = user?.email;
+  const [role, setRole] = useState(user?.role || "");
   const [firstName, setFirstName] = useState(user?.firstName || "");
   const [lastName, setLastName] = useState(user?.lastName || "");
   const [password, setPassword] = useState("");
@@ -77,13 +78,13 @@ function Zarzadzaj({ user, setUser }) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, firstName, lastName }),
+        body: JSON.stringify({ email, firstName, lastName, role }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setUser({ ...user, firstName, lastName });
+        setUser({ ...user, firstName, lastName, role });
         setSuccess("Pomyślnie zaktualizowano dane.");
       } else {
         setError(data.error);
@@ -146,6 +147,28 @@ function Zarzadzaj({ user, setUser }) {
                   required
                 />
               </label>
+              <div className="role-selection">
+                <label>
+                  <input
+                    type="radio"
+                    name="role"
+                    value="student"
+                    checked={role === "student"}
+                    onChange={() => setRole("student")}
+                  />
+                  Uczeń
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="role"
+                    value="teacher"
+                    checked={role === "teacher"}
+                    onChange={() => setRole("teacher")}
+                  />
+                  Nauczyciel
+                </label>
+              </div>
               <button type="submit" className="confirm-button">
                 Potwierdź
               </button>

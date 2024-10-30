@@ -3,26 +3,23 @@ const { MongoClient } = require("mongodb");
 const bcrypt = require("bcrypt");
 const path = require("path");
 const { error } = require("console");
-const cors = require('cors');
-
-
+const cors = require("cors");
 
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "/../projekt"))); // Ścieżka do statycznych plików
 
 const corsOptions = {
-  origin: 'http://localhost:3000', // Zmień na URL swojej aplikacji front-end
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  origin: "http://localhost:3000", // Zmień na URL swojej aplikacji front-end
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true, // Czy zezwalać na przesyłanie ciasteczek
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
 
 app.use(cors(corsOptions));
 
-
-
-const uri = "mongodb+srv://tomekczyz001:PSKFTfk8sYUWYBva@cluster0.b98di.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0/";
+const uri =
+  "mongodb+srv://tomekczyz001:PSKFTfk8sYUWYBva@cluster0.b98di.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0/";
 const dbName = "userAuthDB";
 const collectionName = "users";
 const port = 4000;
@@ -41,12 +38,27 @@ async function connectToDb() {
 
 // Endpoint do rejestracji
 app.post("/register", cors(corsOptions), async (req, res) => {
-  const { email, password, confirmPassword, firstName, lastName, role } = req.body;
+  const { email, password, confirmPassword, firstName, lastName, role } =
+    req.body;
 
-  console.log("Rejestracja:", { email, password, confirmPassword, firstName, lastName, role });
+  console.log("Rejestracja:", {
+    email,
+    password,
+    confirmPassword,
+    firstName,
+    lastName,
+    role,
+  });
 
   // Sprawdzenie, czy pola są wypełnione
-  if (!email || !password || !confirmPassword || !firstName || !lastName || !role) {
+  if (
+    !email ||
+    !password ||
+    !confirmPassword ||
+    !firstName ||
+    !lastName ||
+    !role
+  ) {
     return res.status(400).json({ error: "Wszystkie pola są wymagane." });
   }
 
@@ -67,22 +79,32 @@ app.post("/register", cors(corsOptions), async (req, res) => {
 
     // Haszowanie hasła i zapis do bazy
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = { email, password: hashedPassword, firstName, lastName, role };
+    const newUser = {
+      email,
+      password: hashedPassword,
+      firstName,
+      lastName,
+      role,
+    };
 
     await usersCollection.insertOne(newUser);
     console.log("Użytkownik zarejestrowany:", newUser);
-    
+
     // Zwróć dane użytkownika
-    res.status(201).json({ 
+    res.status(201).json({
       message: "Użytkownik zarejestrowany pomyślnie.",
-      user: { email: email, firstName: firstName, lastName: lastName, role: role } // Przekazujemy potrzebne dane
-     });
+      user: {
+        email: email,
+        firstName: firstName,
+        lastName: lastName,
+        role: role,
+      }, // Przekazujemy potrzebne dane
+    });
   } catch (err) {
     console.error("Błąd podczas rejestracji:", err);
     res.status(500).json({ error: "Wewnętrzny błąd serwera." });
   }
 });
-
 
 // Endpoint do logowania
 app.post("/login", cors(corsOptions), async (req, res) => {
@@ -107,9 +129,14 @@ app.post("/login", cors(corsOptions), async (req, res) => {
     }
 
     // Zwróć dane użytkownika
-    res.status(200).json({ 
-      message: "Użytkownik zalogowany pomyślnie.", 
-      user: { email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role } // Przekazujemy potrzebne dane
+    res.status(200).json({
+      message: "Użytkownik zalogowany pomyślnie.",
+      user: {
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+      }, // Przekazujemy potrzebne dane
     });
   } catch (err) {
     console.error("Błąd podczas logowania:", err);
@@ -118,22 +145,24 @@ app.post("/login", cors(corsOptions), async (req, res) => {
 });
 
 // Endpoint do zmiany hasła
-app.post("/changePassword", cors(corsOptions), async (req, res) => {
+app.post("/changePassword", async (req, res) => {
   const { email, password, newPassword, confPassword } = req.body;
 
   // Sprawdzenie czy email został pomyślnie przesłany
   if (!email) {
-    return res.status(400).json({error: "Błąd podczas pobierania emaila."});
+    return res.status(400).json({ error: "Błąd podczas pobierania emaila." });
   }
 
   // Sprawdzenie czy wszstkie pola są wypełnione
-  if(!password || !newPassword || !confPassword) {
-    return res.status(400).json({error: "Wszystkie pola muszą być wypełnione."});
+  if (!password || !newPassword || !confPassword) {
+    return res
+      .status(400)
+      .json({ error: "Wszystkie pola muszą być wypełnione." });
   }
 
   // Sprawdzenie czy oba hasła są takie same
-  if(newPassword != confPassword) {
-    return res.status(400).json({error: "Hasła sie są takie same."});
+  if (newPassword != confPassword) {
+    return res.status(400).json({ error: "Hasła sie są takie same." });
   }
 
   try {
@@ -159,11 +188,43 @@ app.post("/changePassword", cors(corsOptions), async (req, res) => {
     const update = { $set: { password: hashedNewPassword } };
     usersCollection.updateOne(filter, update);
 
-    res.status(200).json({ 
-      message: "Pomyślnie zmieniono hasło."
+    res.status(200).json({
+      message: "Pomyślnie zmieniono hasło.",
     });
   } catch (err) {
     console.error("Błąd podczas zmiany hasła:", err);
+    res.status(500).json({ error: "Wewnętrzny błąd serwera." });
+  }
+});
+
+// Endpoint do aktualizacji danych użytkownika
+app.post("/updateUser", cors(corsOptions), async (req, res) => {
+  const { email, firstName, lastName } = req.body;
+
+  if (!email || !firstName || !lastName) {
+    return res.status(400).json({ error: "Wszystkie pola są wymagane." });
+  }
+
+  try {
+    const db = await connectToDb();
+    const usersCollection = db.collection(collectionName);
+
+    // Znajdź użytkownika po emailu
+    const user = await usersCollection.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ error: "Użytkownik nie znaleziony." });
+    }
+
+    // Aktualizacja danych w bazie
+    const filter = { email: email };
+    const update = { $set: { firstName, lastName } };
+    await usersCollection.updateOne(filter, update);
+
+    res.status(200).json({
+      message: "Pomyślnie zaktualizowano dane użytkownika.",
+    });
+  } catch (err) {
+    console.error("Błąd podczas aktualizacji danych:", err);
     res.status(500).json({ error: "Wewnętrzny błąd serwera." });
   }
 });

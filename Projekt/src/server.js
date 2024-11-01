@@ -22,6 +22,7 @@ const uri =
   "mongodb+srv://tomekczyz001:PSKFTfk8sYUWYBva@cluster0.b98di.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0/";
 const dbName = "userAuthDB";
 const collectionName = "users";
+const announcementsCollectionName = "announcements";
 const port = 4000;
 
 // Funkcja do połączenia z bazą danych
@@ -225,6 +226,22 @@ app.post("/updateUser", cors(corsOptions), async (req, res) => {
     });
   } catch (err) {
     console.error("Błąd podczas aktualizacji danych:", err);
+    res.status(500).json({ error: "Wewnętrzny błąd serwera." });
+  }
+});
+
+// Endpoint do pobierania ogłoszeń
+app.get("/announcements", cors(corsOptions), async (req, res) => {
+  try {
+    const db = await connectToDb();
+    const announcementsCollection = db.collection(announcementsCollectionName);
+
+    // Pobierz wszystkie ogłoszenia z kolekcji
+    const announcements = await announcementsCollection.find({}).toArray();
+
+    res.status(200).json({ announcements });
+  } catch (err) {
+    console.error("Błąd podczas pobierania ogłoszeń:", err);
     res.status(500).json({ error: "Wewnętrzny błąd serwera." });
   }
 });

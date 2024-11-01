@@ -2,18 +2,43 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Home.css";
 
-function Home({ user, setUser }) { // Dodajemy setUser do propsów
+function Home({ user, setUser }) {
   const [showOptions, setShowOptions] = useState(false);
+  const [announcements, setAnnouncements] = useState([]); // Stan na ogłoszenia
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState(null); // Stan na wybrany rekord
   const navigate = useNavigate();
 
-  // Sprawdź, czy użytkownik jest już zalogowany
+  // Sprawdzenie, czy użytkownik jest już zalogowany
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
     if (savedUser) {
       setUser(JSON.parse(savedUser));
-      navigate("/home"); // Przekieruj do strony głównej, jeśli użytkownik jest już zalogowany
+      navigate("/home");
     }
   }, [navigate, setUser]);
+
+  useEffect(() => {
+    async function fetchAnnouncements() {
+      try {
+        const response = await fetch("http://localhost:4000/announcements", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setAnnouncements(data.announcements);
+        } else {
+          console.error("Błąd podczas pobierania ogłoszeń");
+        }
+      } catch (err) {
+        console.error("Błąd:", err);
+      }
+    }
+
+    fetchAnnouncements();
+  }, []);
 
   const toggleOptions = () => {
     setShowOptions((prev) => !prev);
@@ -24,20 +49,38 @@ function Home({ user, setUser }) { // Dodajemy setUser do propsów
   };
 
   const handleLogout = () => {
-    setUser(null); // Wylogowanie: ustawienie user na null
-    localStorage.removeItem("user"); // Wyczyść localStorage
-    navigate("/"); // Przekierowanie na stronę główną
+    setUser(null);
+    localStorage.removeItem("user");
+    navigate("/");
+  };
+
+  // Funkcja do wyświetlania szczegółów ogłoszenia
+  const showDetails = (announcement) => {
+    setSelectedAnnouncement(announcement);
+  };
+
+  // Funkcja do zamykania modalnego okna
+  const closeModal = () => {
+    setSelectedAnnouncement(null);
   };
 
   return (
     <div className="home-container">
       <header>
-        <div className="profile" onClick={toggleOptions} role="button" aria-label="Pokaż opcje">
+        <div
+          className="profile"
+          onClick={toggleOptions}
+          role="button"
+          aria-label="Pokaż opcje"
+        >
           <div className="avatar-placeholder"></div>
           {showOptions && (
             <div className="profile-options">
               <p className="user-email">{user?.email}</p>
-              <button onClick={handleManageAccount} className="manage-account-button">
+              <button
+                onClick={handleManageAccount}
+                className="manage-account-button"
+              >
                 Zarządzaj kontem
               </button>
               <button onClick={handleLogout} className="logout-button">
@@ -48,6 +91,42 @@ function Home({ user, setUser }) { // Dodajemy setUser do propsów
         </div>
       </header>
       <h1>Witaj w aplikacji, {user?.firstName}!</h1>
+
+      <section className="sekcja-ogloszen">
+        <h2>Ogłoszenia</h2>
+        {announcements.length ? (
+          <ul className="lista-ogloszen">
+            {announcements.map((announcement) => (
+              <li key={announcement.id} className="ogloszenie-element">
+                <h3>{announcement.title}</h3>
+                <h4>{announcement.teacher_name}</h4>
+                <p className="data-ogloszenia">{announcement.date}</p>
+                <button onClick={() => showDetails(announcement)}>
+                  Szczegóły
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>Brak dostępnych ogłoszeń.</p>
+        )}
+      </section>
+
+      {/* Modalne okno ze szczegółami ogłoszenia */}
+      {selectedAnnouncement && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <button className="close-button" onClick={closeModal}>
+              X
+            </button>
+            <h2>{selectedAnnouncement.title}</h2>
+            <h3>{selectedAnnouncement.teacher_name}</h3>
+            <p>{selectedAnnouncement.content}</p>
+            <p className="data-ogloszenia">{selectedAnnouncement.date}</p>
+            <p>{selectedAnnouncement.details}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

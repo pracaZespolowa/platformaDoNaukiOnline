@@ -11,29 +11,45 @@ function Register({ setUser }) {
   const [role, setRole] = useState(""); // Nowe pole roli
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const apiUrl = "http://localhost:4000";
 
   const handleRegister = async () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s\d@]+$/;
-    if (email && password.length >= 6 && password === confirmPassword && emailRegex.test(email) && firstName && lastName && role) {
+    if (
+      email &&
+      password.length >= 6 &&
+      password === confirmPassword &&
+      emailRegex.test(email) &&
+      firstName &&
+      lastName &&
+      role
+    ) {
       try {
-        const response = await fetch("http://localhost:3000/register", {
+        const response = await fetch(`${apiUrl}/register`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ email, password, confirmPassword, firstName, lastName, role }),
+          body: JSON.stringify({
+            email,
+            password,
+            confirmPassword,
+            firstName,
+            lastName,
+            role,
+          }),
         });
 
         const data = await response.json();
-        console.log(data); 
+        console.log(data);
 
         if (response.ok) {
           // Ustaw użytkownika z odpowiedzi
-          setUser({ 
-            email: data.user.email, 
-            firstName: data.user.firstName, 
-            lastName: data.user.lastName, 
-            role: data.user.role 
+          setUser({
+            email: data.user.email,
+            firstName: data.user.firstName,
+            lastName: data.user.lastName,
+            role: data.user.role,
           });
           navigate("/home");
         } else {
@@ -44,13 +60,15 @@ function Register({ setUser }) {
         setError(`Nie udało się zarejestrować. Powód: ${err.message}`);
       }
     } else {
-      setError("Wszystkie pola są wymagane, hasło musi mieć co najmniej 6 znaków, a hasła muszą się zgadzać.");
+      setError(
+        "Wszystkie pola są wymagane, hasło musi mieć co najmniej 6 znaków, a hasła muszą się zgadzać."
+      );
     }
   };
 
   const handleLogin = () => {
     navigate("/");
-  }
+  };
 
   return (
     <div className="register-container">
@@ -127,8 +145,12 @@ function Register({ setUser }) {
           Nauczyciel
         </label>
       </div>
-      <button type="button" onClick={handleRegister}>Zarejestruj</button>
-      <button type="button" onClick={handleLogin}>Logowanie</button>
+      <button type="button" onClick={handleRegister}>
+        Zarejestruj
+      </button>
+      <button type="button" onClick={handleLogin}>
+        Logowanie
+      </button>
       {error && <p className="error-message">{error}</p>}
     </div>
   );

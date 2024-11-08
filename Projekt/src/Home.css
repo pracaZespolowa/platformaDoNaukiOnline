@@ -115,4 +115,81 @@
   .login-button:hover {
     background-color: #0056b3;
   }
+  .sekcja-ogloszen {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .lista-ogloszen {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .ogloszenie-element {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    background-color: #f9f9f9;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .ogloszenie-element h3 {
+    margin: 0 0 10px;
+    font-size: 18px;
+  }
+  
+  .ogloszenie-element p {
+    margin: 5px 0;
+    font-size: 16px;
+    color: #555;
+  }
+  
+  .data-ogloszenia {
+    font-size: 14px;
+    color: #888;
+    text-align: right;
+    margin-top: 10px;
+  }
+  
+  .szczegoly-button {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    padding: 5px 10px;
+    font-size: 0.9em;
+    cursor: pointer;
+  }
+  
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .modal {
+    background: #fff;
+    padding: 20px;
+    width: 80%;
+    max-width: 500px;
+    position: relative;
+    border-radius: 8px;
+  }
+  
+  .close-button {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 1.2em;
+    cursor: pointer;
+    background: none;
+    border: none;
+  }
   

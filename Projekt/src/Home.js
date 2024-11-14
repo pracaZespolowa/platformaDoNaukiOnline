@@ -14,7 +14,12 @@ function Home({ user, setUser }) {
     teacher_name: user?.firstName + " " + user?.lastName,
     subject: ""
   });
+  const [selectedSubject, setSelectedSubject] = useState("wszystkie");
   const navigate = useNavigate();
+  const subjects = [...new Set(announcements.map(item => item.subject))];
+  const filteredAnnouncements = selectedSubject === "wszystkie"
+    ? announcements
+    : announcements.filter(announcement => announcement.subject === selectedSubject);
 
   // Sprawdzenie, czy użytkownik jest już zalogowany
   useEffect(() => {
@@ -28,6 +33,8 @@ function Home({ user, setUser }) {
   // Funkcja do pobierania ogłoszeń z API
   useEffect(() => {
     const fetchAnnouncements = async () => {
+  useEffect(() => {
+    async function fetchAnnouncements() {
       try {
         const response = await fetch("http://localhost:4000/announcements", {
           method: "GET",
@@ -38,6 +45,7 @@ function Home({ user, setUser }) {
         if (response.ok) {
           const data = await response.json();
           setAnnouncements(data.announcements); // Ustawienie ogłoszeń w stanie
+          setAnnouncements(data.announcements);
         } else {
           console.error("Błąd podczas pobierania ogłoszeń");
         }
@@ -50,6 +58,11 @@ function Home({ user, setUser }) {
   }, []);
 
   // Funkcja do przełączania widoczności opcji profilu
+    }
+
+    fetchAnnouncements();
+  }, []);
+
   const toggleOptions = () => {
     setShowOptions((prev) => !prev);
   };
@@ -64,6 +77,20 @@ function Home({ user, setUser }) {
     setUser(null);
     localStorage.removeItem("user");
     navigate("/");
+  };
+
+  // Funkcja do wyświetlania szczegółów ogłoszenia
+  const showDetails = (announcement) => {
+    setSelectedAnnouncement(announcement);
+  };
+
+  // Funkcja do zamykania modalnego okna
+  const closeModal = () => {
+    setSelectedAnnouncement(null);
+  };
+
+  const handleSubjectChange = (event) => {
+    setSelectedSubject(event.target.value);
   };
 
   // Funkcja do wyświetlania szczegółów ogłoszenia
@@ -190,6 +217,42 @@ function Home({ user, setUser }) {
     )}
   </section>
 
+      <section className="sekcja-filtrów">
+        <h2>Filtry</h2>
+        <label className="label-filtr">
+          Przedmiot <select className="lista-przedmiotow" onChange={handleSubjectChange}>
+            <option value="wszystkie">Wszystkie</option>
+            {subjects.length ? (
+              subjects.map((e) => 
+                <option key={e} value={e}>{e}</option>
+              )
+            ) : (
+              <option disabled>Brak filtrów</option>
+            )}
+            
+          </select>
+        </label>
+      </section>
+
+      <section className="sekcja-ogloszen">
+        <h2>Ogłoszenia</h2>
+        {filteredAnnouncements.length ? (
+          <ul className="lista-ogloszen">
+            {filteredAnnouncements.map((announcement) => (
+              <li key={announcement.id} className="ogloszenie-element">
+                <h3>{announcement.title}</h3>
+                <h4>{announcement.teacher_name}</h4>
+                <p className="data-ogloszenia">{announcement.date}</p>
+                <button onClick={() => showDetails(announcement)}>
+                  Szczegóły
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>Brak dostępnych ogłoszeń.</p>
+        )}
+      </section>
 
       {/* Modalne okno ze szczegółami ogłoszenia */}
       {selectedAnnouncement && (
@@ -269,6 +332,7 @@ function Home({ user, setUser }) {
               </button>
               
             </form>
+            <p>{selectedAnnouncement.details}</p>
           </div>
         </div>
       )}

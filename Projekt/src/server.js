@@ -246,6 +246,45 @@ app.get("/announcements", cors(corsOptions), async (req, res) => {
   }
 });
 
+// Endpoint do dodawania nowego ogłoszenia
+app.post("/announcements", cors(corsOptions), async (req, res) => {
+  const { title, content, date, teacher_name, subject } = req.body;
+
+  if (!title || !content || !date || !teacher_name || !subject) {
+    return res.status(400).json({ error: "Wszystkie pola są wymagane." });
+  }
+
+  try {
+    const db = await connectToDb();
+    const announcementsCollection = db.collection(announcementsCollectionName);
+
+    // Tworzenie nowego ogłoszenia
+    const newAnnouncement = {
+      title,
+      content,
+      date,
+      teacher_name,
+      subject,
+    };
+
+    const result = await announcementsCollection.insertOne(newAnnouncement);
+    const addedAnnouncement = await announcementsCollection.findOne({ _id: result.insertedId });
+
+    console.log("Dodano nowe ogłoszenie:", addedAnnouncement);
+
+    res.status(201).json({
+      message: "Ogłoszenie dodane pomyślnie.",
+      announcement: addedAnnouncement,
+    });
+  } catch (err) {
+    console.error("Błąd podczas dodawania ogłoszenia:", err);
+    res.status(500).json({ error: "Wewnętrzny błąd serwera." });
+  }
+});
+
+
+
+
 // Uruchomienie serwera
 app.listen(port, () => {
   console.log(`Serwer działa na porcie ${port}`);

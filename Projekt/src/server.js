@@ -158,6 +158,53 @@ app.post("/changePassword", async (req, res) => {
   }
 });
 
+
+// Endpoint do pobierania ogłoszeń
+app.get("/announcements", cors(corsOptions), async (req, res) => {
+  try {
+    const db = await connectToDb();
+    const announcementsCollection = db.collection(announcementsCollectionName);
+
+    // Pobierz wszystkie ogłoszenia z kolekcji
+    const announcements = await announcementsCollection.find({}).toArray();
+
+    res.status(200).json({ announcements });
+  } catch (err) {
+    console.error("Błąd podczas pobierania ogłoszeń:", err);
+    res.status(500).json({ error: "Wewnętrzny błąd serwera." });
+  }
+});
+
+// Endpoint do dodawania nowego ogłoszenia
+app.post("/announcements", cors(corsOptions), async (req, res) => {
+  const { title, content, date, teacher_name, subject } = req.body;
+
+  // Walidacja danych
+  if (!title || !content || !date || !teacher_name || !subject) {
+    return res.status(400).json({ error: "Wszystkie pola są wymagane." });
+  }
+
+  try {
+    const db = await connectToDb();
+    const announcementsCollection = db.collection("announcements");
+
+    const newAnnouncement = {
+      title,
+      content,
+      date,
+      teacher_name,
+      subject,
+    };
+
+    await announcementsCollection.insertOne(newAnnouncement);
+    res.status(201).json({ message: "Ogłoszenie dodane pomyślnie." });
+  } catch (err) {
+    console.error("Błąd podczas dodawania ogłoszenia:", err);
+    res.status(500).json({ error: "Wewnętrzny błąd serwera." });
+  }
+});
+
+
 // Uruchomienie serwera
 app.listen(port, () => {
   console.log(`Serwer działa na porcie ${port}`);

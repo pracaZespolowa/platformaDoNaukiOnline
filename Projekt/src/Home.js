@@ -13,16 +13,19 @@ function Home({ user, setUser }) {
     content: "",
     date: "",
     teacher_name: user?.firstName + " " + user?.lastName,
-    subject: ""
+    subject: "",
   });
-  const subjects = [...new Set(announcements.map(item => item.subject))];
-  const filteredAnnouncements = selectedSubject === "wszystkie"
-    ? announcements
-    : announcements.filter(announcement => announcement.subject === selectedSubject);
-
+  const [selectedSubject, setSelectedSubject] = useState("wszystkie");
   const navigate = useNavigate();
-  
-  // Sprawdzenie, czy użytkownik jest już zalogowany
+
+  const subjects = [...new Set(announcements.map((item) => item.subject))];
+  const filteredAnnouncements =
+    selectedSubject === "wszystkie"
+      ? announcements
+      : announcements.filter(
+          (announcement) => announcement.subject === selectedSubject
+        );
+
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
     if (savedUser) {
@@ -70,6 +73,66 @@ function Home({ user, setUser }) {
     setUser(null);
     localStorage.removeItem("user");
     navigate("/");
+  };
+
+  const showDetails = (announcement) => {
+    setSelectedAnnouncement(announcement);
+  };
+
+  const closeModal = () => {
+    setSelectedAnnouncement(null);
+  };
+
+  const handleSubjectChange = (event) => {
+    setSelectedSubject(event.target.value);
+  };
+
+  const openAddForm = () => {
+    setShowAddForm(true);
+  };
+
+  const closeAddForm = () => {
+    setShowAddForm(false);
+    setNewAnnouncement({
+      title: "",
+      content: "",
+      date: "",
+      teacher_name: user?.firstName + " " + user?.lastName,
+      subject: "",
+    });
+  };
+
+  const handleAddAnnouncement = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch("http://localhost:4000/announcements", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newAnnouncement),
+      });
+
+      if (response.ok) {
+        const updatedAnnouncementsResponse = await fetch(
+          "http://localhost:4000/announcements"
+        );
+        if (updatedAnnouncementsResponse.ok) {
+          const updatedData = await updatedAnnouncementsResponse.json();
+          setAnnouncements(updatedData.announcements);
+          alert("Ogłoszenie dodano pomyślnie!");
+        } else {
+          console.error("Error fetching updated announcements list");
+        }
+        closeAddForm();
+      } else {
+        const errorData = await response.json();
+        alert("Błąd podczas dodawania ogłoszenia: " + errorData.error);
+      }
+    } catch (err) {
+      alert("Błąd podczas wysyłania danych: " + err.message);
+    }
   };
 
   // Funkcja do wyświetlania szczegółów ogłoszenia
@@ -252,7 +315,10 @@ function Home({ user, setUser }) {
                   type="text"
                   value={newAnnouncement.title}
                   onChange={(e) =>
-                    setNewAnnouncement({ ...newAnnouncement, title: e.target.value })
+                    setNewAnnouncement({
+                      ...newAnnouncement,
+                      title: e.target.value,
+                    })
                   }
                   required
                 />
@@ -262,7 +328,10 @@ function Home({ user, setUser }) {
                 <textarea
                   value={newAnnouncement.content}
                   onChange={(e) =>
-                    setNewAnnouncement({ ...newAnnouncement, content: e.target.value })
+                    setNewAnnouncement({
+                      ...newAnnouncement,
+                      content: e.target.value,
+                    })
                   }
                   required
                 ></textarea>
@@ -273,7 +342,10 @@ function Home({ user, setUser }) {
                   type="date"
                   value={newAnnouncement.date}
                   onChange={(e) =>
-                    setNewAnnouncement({ ...newAnnouncement, date: e.target.value })
+                    setNewAnnouncement({
+                      ...newAnnouncement,
+                      date: e.target.value,
+                    })
                   }
                   required
                 />
@@ -284,7 +356,10 @@ function Home({ user, setUser }) {
                   type="text"
                   value={newAnnouncement.subject}
                   onChange={(e) =>
-                    setNewAnnouncement({ ...newAnnouncement, subject: e.target.value })
+                    setNewAnnouncement({
+                      ...newAnnouncement,
+                      subject: e.target.value,
+                    })
                   }
                   required
                 />
@@ -292,7 +367,6 @@ function Home({ user, setUser }) {
               <button type="submit" className="confirm-button">
                 Dodaj ogłoszenie
               </button>
-              
             </form>
           </div>
         </div>

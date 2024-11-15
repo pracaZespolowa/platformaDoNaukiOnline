@@ -250,6 +250,7 @@ app.get("/announcements", cors(corsOptions), async (req, res) => {
 app.post("/announcements", cors(corsOptions), async (req, res) => {
   const { title, content, date, teacher_name, subject } = req.body;
 
+  // Walidacja danych
   if (!title || !content || !date || !teacher_name || !subject) {
     return res.status(400).json({ error: "Wszystkie pola są wymagane." });
   }

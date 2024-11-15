@@ -9,7 +9,7 @@ function Home({ user }) {
   const toggleOptions = () => {
     setShowOptions((prev) => !prev);
   };
-
+//
   const handleManageAccount = () => {
     navigate("/zarzadzaj"); // Przekierowanie do strony Zarządzaj kontem
   };

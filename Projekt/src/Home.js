@@ -7,6 +7,7 @@ function Home({ user, setUser }) {
   const [announcements, setAnnouncements] = useState([]); // Stan na ogłoszenia
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null); // Stan na wybrany rekord
   const [showAddForm, setShowAddForm] = useState(false); // Stan do kontrolowania widoczności formularza
+  const [selectedSubject, setSelectedSubject] = useState("wszystkie");
   const [newAnnouncement, setNewAnnouncement] = useState({
     title: "",
     content: "",
@@ -14,8 +15,13 @@ function Home({ user, setUser }) {
     teacher_name: user?.firstName + " " + user?.lastName,
     subject: ""
   });
-  const navigate = useNavigate();
+  const subjects = [...new Set(announcements.map(item => item.subject))];
+  const filteredAnnouncements = selectedSubject === "wszystkie"
+    ? announcements
+    : announcements.filter(announcement => announcement.subject === selectedSubject);
 
+  const navigate = useNavigate();
+  
   // Sprawdzenie, czy użytkownik jest już zalogowany
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
@@ -79,6 +85,10 @@ function Home({ user, setUser }) {
   // Funkcja do otwierania formularza dodawania ogłoszenia
   const openAddForm = () => {
     setShowAddForm(true);
+  };
+
+  const handleSubjectChange = (event) => {
+    setSelectedSubject(event.target.value);
   };
 
   // Funkcja do zamykania formularza dodawania ogłoszenia
@@ -161,7 +171,22 @@ function Home({ user, setUser }) {
       </header>
       <h1>Witaj w aplikacji, {user?.firstName}!</h1>
 
-      
+  <section className="sekcja-filtrów">
+    <h2>Filtry</h2>
+    <label className="label-filtr">
+      Przedmiot <select className="lista-przedmiotow" onChange={handleSubjectChange}>
+        <option value="wszystkie">Wszystkie</option>
+        {subjects.length ? (
+          subjects.map((e) => 
+            <option key={e} value={e}>{e}</option>
+          )
+        ) : (
+          <option disabled>Brak filtrów</option>
+        )}
+        
+      </select>
+    </label>
+  </section>
 
   <section className="sekcja-ogloszen">
     <div className="ogloszenia-header">
@@ -172,9 +197,9 @@ function Home({ user, setUser }) {
         </button>
       )}
     </div>
-    {announcements.length ? (
+    {filteredAnnouncements.length ? (
       <ul className="lista-ogloszen">
-        {announcements.map((announcement) => (
+        {filteredAnnouncements.map((announcement) => (
           <li key={announcement.id} className="ogloszenie-element">
             <h3>{announcement.title}</h3>
             <h4>{announcement.teacher_name}</h4>

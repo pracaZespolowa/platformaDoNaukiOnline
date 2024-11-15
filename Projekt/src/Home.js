@@ -15,9 +15,6 @@ function Home({ user, setUser }) {
     teacher_name: user?.firstName + " " + user?.lastName,
     subject: "",
   });
-  const [selectedSubject, setSelectedSubject] = useState("wszystkie");
-  const navigate = useNavigate();
-
   const subjects = [...new Set(announcements.map((item) => item.subject))];
   const filteredAnnouncements =
     selectedSubject === "wszystkie"
@@ -25,6 +22,9 @@ function Home({ user, setUser }) {
       : announcements.filter(
           (announcement) => announcement.subject === selectedSubject
         );
+  const navigate = useNavigate();
+
+  
 
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
@@ -73,66 +73,6 @@ function Home({ user, setUser }) {
     setUser(null);
     localStorage.removeItem("user");
     navigate("/");
-  };
-
-  const showDetails = (announcement) => {
-    setSelectedAnnouncement(announcement);
-  };
-
-  const closeModal = () => {
-    setSelectedAnnouncement(null);
-  };
-
-  const handleSubjectChange = (event) => {
-    setSelectedSubject(event.target.value);
-  };
-
-  const openAddForm = () => {
-    setShowAddForm(true);
-  };
-
-  const closeAddForm = () => {
-    setShowAddForm(false);
-    setNewAnnouncement({
-      title: "",
-      content: "",
-      date: "",
-      teacher_name: user?.firstName + " " + user?.lastName,
-      subject: "",
-    });
-  };
-
-  const handleAddAnnouncement = async (e) => {
-    e.preventDefault();
-
-    try {
-      const response = await fetch("http://localhost:4000/announcements", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newAnnouncement),
-      });
-
-      if (response.ok) {
-        const updatedAnnouncementsResponse = await fetch(
-          "http://localhost:4000/announcements"
-        );
-        if (updatedAnnouncementsResponse.ok) {
-          const updatedData = await updatedAnnouncementsResponse.json();
-          setAnnouncements(updatedData.announcements);
-          alert("Ogłoszenie dodano pomyślnie!");
-        } else {
-          console.error("Error fetching updated announcements list");
-        }
-        closeAddForm();
-      } else {
-        const errorData = await response.json();
-        alert("Błąd podczas dodawania ogłoszenia: " + errorData.error);
-      }
-    } catch (err) {
-      alert("Błąd podczas wysyłania danych: " + err.message);
-    }
   };
 
   // Funkcja do wyświetlania szczegółów ogłoszenia

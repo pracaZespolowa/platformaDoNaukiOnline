@@ -1,5 +1,5 @@
 .home-container {
-    padding: 20px;
+  padding: 20px;
 }
 
 /* Ustawienie profilu z awatarem na prawo */
@@ -8,7 +8,7 @@ header {
   justify-content: flex-end; /* Ustawienie elementów w nagłówku na prawo */
   align-items: center;
   padding: 10px;
-  background-color: #f8f8f8; 
+  background-color: #f8f8f8;
 }
 /* test  */
 .profile {
@@ -243,7 +243,7 @@ header {
 /* Styl przycisków */
 .add-announcement-button,
 .confirm-button {
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
   padding: 10px 20px;
   border: none;
@@ -297,7 +297,7 @@ textarea {
 }
 
 .add-announcement-button {
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
   padding: 8px 16px;
   border: none;
@@ -355,4 +355,106 @@ textarea {
   margin-bottom: 5px;
   font-size: 16px;
   color: #555;
+}
+/* Stylizacja kontenera nagłówka */
+/* Stylizacja kontenera nagłówka */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #fff; /* Przykładowy kolor tła */
+  border-bottom: 1px solid #ddd;
+}
+
+/* Kontener dla profilu i dzwoneczka, wyrównanie do prawej */
+.profile-options-container {
+  display: flex;
+  justify-content: flex-end; /* Wyrównanie elementów do prawej strony */
+  align-items: center; /* Wyrównanie elementów w pionie */
+  flex-grow: 1; /* Zapewnienie, że kontener zajmuje całą dostępną szerokość */
+}
+
+/* Stylizacja profilu */
+.profile {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+/* Placeholder dla awatara */
+.avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  background-color: #ccc;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+/* Stylizacja dzwoneczka */
+.notification-bell {
+  position: relative;
+  cursor: pointer;
+  margin-left: 20px; /* Odstęp od profilu */
+}
+
+/* Stylizacja licznika powiadomień */
+.notification-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: red;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 12px;
+}
+
+/* Stylizacja rozwijanego panelu powiadomień */
+.notification-dropdown {
+  position: absolute;
+  top: 80px;
+  right: 10px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  width: 300px;
+  padding: 10px;
+}
+
+.notification-dropdown h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.reservation-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0;
+}
+
+.reservation-list li {
+  border-bottom: 1px solid #ccc;
+  padding: 5px 0;
+}
+
+.reservation-list li:last-child {
+  border-bottom: none;
+}
+
+.close-notifications {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: transparent;
+  border: none;
+  font-size: 18px;
+  color: #555;
+  cursor: pointer;
+}
+
+.close-notifications:hover {
+  color: #000;
 }

@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const path = require("path");
 const { error } = require("console");
 const cors = require("cors");
+const { ObjectId } = require("mongodb");
 
 const app = express();
 app.use(express.json());
@@ -269,7 +270,9 @@ app.post("/announcements", cors(corsOptions), async (req, res) => {
     };
 
     const result = await announcementsCollection.insertOne(newAnnouncement);
-    const addedAnnouncement = await announcementsCollection.findOne({ _id: result.insertedId });
+    const addedAnnouncement = await announcementsCollection.findOne({
+      _id: result.insertedId,
+    });
 
     console.log("Dodano nowe ogłoszenie:", addedAnnouncement);
 
@@ -283,8 +286,111 @@ app.post("/announcements", cors(corsOptions), async (req, res) => {
   }
 });
 
+// Endpoint do rezerwacji ogłoszenia
+app.post("/reserve", cors(corsOptions), async (req, res) => {
+  // Definicja endpointu POST "/reserve". Funkcja asynchroniczna, która przyjmuje request i response.
+  console.log("Odebrane dane:", req.body); // Zalogowanie otrzymanych danych w żądaniu (request body), które będą zawierały dane do rezerwacji.
 
+  // Destrukturyzacja danych z request body: announcementId, studentId, date
+  const { announcementId, studentId, date } = req.body;
+  console.log(req.body);
 
+  // Sprawdzenie, czy wszystkie wymagane dane są przesłane
+  if (!announcementId || !studentId || !date) {
+    return res.status(400).json({ error: "Wszystkie pola są wymagane." }); // Jeśli brak jakiegokolwiek z wymaganych pól, zwróć błąd 400 (Bad Request).
+  }
+
+  // Sprawdzenie, czy announcementId jest poprawne (czy jest prawidłowym ObjectId)
+  if (!ObjectId.isValid(announcementId)) {
+    return res
+      .status(400) // Zwróć błąd 400 (Bad Request)
+      .json({ error: "Nieprawidłowy identyfikator ogłoszenia." }); // Informacja, że podany identyfikator ogłoszenia jest niepoprawny.
+  }
+
+  try {
+    // Połączenie z bazą danych
+    const db = await connectToDb(); // Asynchroniczne połączenie z bazą danych
+    const announcementsCollection = db.collection(announcementsCollectionName); // Uzyskanie dostępu do kolekcji ogłoszeń w bazie danych
+
+    // Sprawdzenie dostępności ogłoszenia po ID
+    const announcement = await announcementsCollection.findOne({
+      _id: new ObjectId(announcementId), // Przekonwertowanie stringa announcementId na obiekt ObjectId, ponieważ MongoDB przechowuje identyfikatory w tym formacie.
+    });
+
+    if (!announcement) {
+      return res.status(404).json({ error: "Ogłoszenie nie znaleziono." }); // Jeśli ogłoszenie o podanym ID nie istnieje, zwróć błąd 404 (Not Found)
+    }
+
+    // Sprawdzenie, czy termin rezerwacji jest już zajęty
+    const isDateTaken =
+      announcement.reservations && // Sprawdź, czy istnieją rezerwacje w ogłoszeniu
+      announcement.reservations.some(
+        // Przejdź przez wszystkie rezerwacje
+        (reservation) => reservation.date === date // Sprawdź, czy data rezerwacji już istnieje
+      );
+
+    if (isDateTaken) {
+      return res.status(409).json({ error: "Termin jest już zajęty." }); // Jeśli termin już jest zajęty, zwróć błąd 409 (Conflict)
+    }
+
+    // Dodanie nowej rezerwacji
+    const newReservation = { studentId, date }; // Tworzenie obiektu nowej rezerwacji
+
+    await announcementsCollection.updateOne(
+      // Asynchroniczne zaktualizowanie ogłoszenia w bazie danych
+      { _id: new ObjectId(announcementId) }, // Wyszukiwanie ogłoszenia po ID
+      { $push: { reservations: newReservation } } // Dodanie nowej rezerwacji do tablicy reservations w dokumencie ogłoszenia
+    );
+
+    // Powiadomienie o dokonanej rezerwacji
+    console.log("Rezerwacja dokonana:", newReservation); // Zalogowanie nowej rezerwacji w konsoli
+
+    // Zwrócenie odpowiedzi o pomyślnym dokonaniu rezerwacji
+    res.status(201).json({
+      message: "Rezerwacja dokonana pomyślnie.", // Informacja o sukcesie
+      reservation: newReservation, // Zwrócenie obiektu rezerwacji
+    });
+  } catch (err) {
+    // Obsługa błędów, jeśli coś poszło nie tak
+    console.error("Błąd podczas rezerwacji ogłoszenia:", err); // Zalogowanie błędu w konsoli
+    res.status(500).json({ error: "Wewnętrzny błąd serwera." }); // Zwrócenie błędu 500 (Internal Server Error) w przypadku problemu z serwerem
+  }
+});
+
+// Endpoint do pobierania rezerwacji użytkownika
+app.get("/reservations/:userId", cors(corsOptions), async (req, res) => {
+  const { userId } = req.params;
+
+  if (!userId) {
+    return res.status(400).json({ error: "Brak ID użytkownika." });
+  }
+
+  try {
+    // Połączenie z bazą danych
+    const db = await connectToDb();
+    const announcementsCollection = db.collection(announcementsCollectionName);
+
+    // Pobranie rezerwacji, w których studentId odpowiada userId
+    const reservations = await announcementsCollection
+      .aggregate([
+        { $unwind: "$reservations" }, // Rozdzielenie tablicy reservations
+        { $match: { "reservations.studentId": userId } }, // Dopasowanie do użytkownika
+        {
+          $project: {
+            _id: 0,
+            title: 1,
+            date: "$reservations.date",
+          },
+        },
+      ])
+      .toArray();
+
+    res.status(200).json({ reservations });
+  } catch (err) {
+    console.error("Błąd podczas pobierania rezerwacji:", err);
+    res.status(500).json({ error: "Wewnętrzny błąd serwera." });
+  }
+});
 
 // Uruchomienie serwera
 app.listen(port, () => {

@@ -4,12 +4,11 @@ import "./Home.css";
 
 function Home({ user, setUser }) {
   const [showOptions, setShowOptions] = useState(false);
-  const [announcements, setAnnouncements] = useState([]); // Stan na ogłoszenia
-  const [selectedAnnouncement, setSelectedAnnouncement] = useState(null); // Stan na wybrany rekord
-  const [showAddForm, setShowAddForm] = useState(false); // Stan do kontrolowania widoczności formularza
+  const [announcements, setAnnouncements] = useState([]);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
+  const [showAddForm, setShowAddForm] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState("wszystkie");
   const [showNotifications, setShowNotifications] = useState(false);
-  const [reservations, setReservations] = useState([]);
 
   const [newAnnouncement, setNewAnnouncement] = useState({
     title: "",
@@ -19,6 +18,7 @@ function Home({ user, setUser }) {
     subject: "",
   });
   const subjects = [...new Set(announcements.map((item) => item.subject))];
+
   const filteredAnnouncements =
     selectedSubject === "wszystkie"
       ? announcements
@@ -29,9 +29,26 @@ function Home({ user, setUser }) {
 
   const [reservation, setReservation] = useState({
     announcementId: "",
-    studentId: user?.id || "",
+    email: user?.id || "",
     date: "",
+    time: "",
+    subject: "",
   });
+
+  function formatDateToCustom(dateString) {
+    const date = new Date(dateString);
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Miesiące są liczone od 0, więc dodajemy 1
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+  }
+
+  const formattedDate = formatDateToCustom("2024-12-01 16:44:00");
+  console.log(formattedDate); // "2024-12-01 16:44"
 
   const [showReservationForm, setShowReservationForm] = useState(false);
 
@@ -40,11 +57,13 @@ function Home({ user, setUser }) {
       alert("Musisz być zalogowany, aby dokonać rezerwacji.");
       return;
     }
+
     setReservation((prev) => ({
       ...prev,
       announcementId,
-      studentId: user.id,
+      email: user.email,
     }));
+
     setShowReservationForm(true);
   };
 
@@ -52,19 +71,20 @@ function Home({ user, setUser }) {
     setShowReservationForm(false);
     setReservation({
       announcementId: "",
-      studentId: user?.id || "",
+      email: user?.email || "",
       date: "",
+      time: "",
     });
   };
 
   const fetchReservations = async () => {
     try {
       const response = await fetch(
-        `http://localhost:4000/reservations/${user?.id}`
+        `http://localhost:4000/reservations/user?email=${user.email}`
       );
       if (response.ok) {
         const data = await response.json();
-        setReservations(data.reservations);
+        setReservation(data.reservations || []);
       } else {
         console.error("Błąd podczas pobierania rezerwacji");
       }
@@ -80,53 +100,46 @@ function Home({ user, setUser }) {
     }
   };
 
-  const handleReserve = async (e) => {
+  const handleAddReservation = async (e) => {
     e.preventDefault();
 
-    const { date, announcementId, studentId } = reservation;
+    // Dodanie przedmiotu do rezerwacji
+    const announcement = announcements.find(
+      (ann) => ann.id === reservation.announcementId
+    );
 
-    // Sprawdzanie, czy wszystkie dane są obecne
-    if (!date || !announcementId || !studentId) {
-      console.log(reservation);
-      alert("Wszystkie pola są wymagane!");
-      return;
-    }
+    const reservationWithSubject = {
+      ...reservation,
+      subject: announcement?.subject || "", // Dodajemy przedmiot do rezerwacji
+    };
 
     try {
-      console.log(reservation);
-      const response = await fetch("http://localhost:4000/reserve", {
+      const response = await fetch("http://localhost:4000/reservations", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(reservation), // Wysyłamy całą rezerwację
+        body: JSON.stringify(reservationWithSubject),
       });
 
       if (response.ok) {
-        const data = await response.json();
-        alert("Rezerwacja dokonana pomyślnie!");
-
-        // Dodanie rezerwacji do lokalnego stanu po pomyślnym zapisaniu
-        setReservations((prevReservations) => [
-          ...prevReservations,
-          {
-            ...reservation, // Kopia rezerwacji
-            title: data.announcementTitle, // Przykład dodania tytułu ogłoszenia (dostosuj do odpowiedzi z API)
-            date: reservation.date,
-          },
-        ]);
-
+        await fetchReservations(); // Aktualizuj rezerwacje
+        alert("Rezerwację dodano pomyślnie!");
         closeReservationForm();
       } else {
         const errorData = await response.json();
-        alert(
-          "Błąd podczas rezerwacji: " + (errorData.error || "Nieznany błąd.")
-        );
+        console.error("Błąd podczas dodawania rezerwacji:", errorData.error);
+        alert("Błąd podczas dodawania rezerwacji: " + errorData.error);
       }
     } catch (err) {
+      console.error("Błąd:", err);
       alert("Błąd podczas wysyłania danych: " + err.message);
     }
   };
+
+  useEffect(() => {
+    console.log("User data in effect:", user);
+  }, [user]);
 
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
@@ -135,8 +148,8 @@ function Home({ user, setUser }) {
       setUser(parsedUser);
       setReservation((prev) => ({
         ...prev,
-        studentId: parsedUser.id,
-      })); // Aktualizacja `studentId` w stanie rezerwacji
+        email: parsedUser.email,
+      }));
       navigate("/home");
     }
   }, [navigate, setUser]);
@@ -153,7 +166,7 @@ function Home({ user, setUser }) {
         });
         if (response.ok) {
           const data = await response.json();
-          setAnnouncements(data.announcements); // Ustawienie ogłoszeń w stanie
+          setAnnouncements(data.announcements);
         } else {
           console.error("Błąd podczas pobierania ogłoszeń");
         }
@@ -217,8 +230,6 @@ function Home({ user, setUser }) {
   const handleAddAnnouncement = async (e) => {
     e.preventDefault();
 
-    console.log("Dodawanie ogłoszenia:", newAnnouncement); // Loguj dane ogłoszenia
-
     try {
       const response = await fetch("http://localhost:4000/announcements", {
         method: "POST",
@@ -238,7 +249,7 @@ function Home({ user, setUser }) {
           const updatedData = await updatedAnnouncementsResponse.json();
           setAnnouncements(updatedData.announcements); // Aktualizacja stanu ogłoszeń
 
-          alert("Ogłoszenie dodano pomyślnie!"); // Wyświetlenie alertu z potwierdzeniem
+          alert("Ogłoszenie dodano pomyślnie!");
         } else {
           console.error(
             "Błąd podczas pobierania zaktualizowanej listy ogłoszeń"
@@ -287,8 +298,8 @@ function Home({ user, setUser }) {
             <span role="img" aria-label="Dzwonek">
               🔔
             </span>
-            {reservations.length > 0 && (
-              <span className="notification-count">{reservations.length}</span>
+            {reservation.length > 0 && (
+              <span className="notification-count">{reservation.length}</span>
             )}
           </div>
         </div>
@@ -300,16 +311,17 @@ function Home({ user, setUser }) {
             ❌
           </div>
           <h3>Twoje Rezerwacje</h3>
-          {reservations.length > 0 ? (
+          {reservation.length > 0 ? (
             <ul className="reservation-list">
-              {reservations.map((reservation, index) => (
-                <li key={index}>
-                  <p>
-                    <strong>{reservation.title}</strong>
-                  </p>
-                  <p>Data: {reservation.date}</p>
-                </li>
-              ))}
+              {reservation.map((reservation, index) => {
+                const date = formatDateToCustom(reservation.date);
+                return (
+                  <li key={index}>
+                    <p>Przedmiot: {reservation.subject}</p>
+                    <p>Data: {date}</p>
+                  </li>
+                );
+              })}
             </ul>
           ) : (
             <p>Brak rezerwacji</p>
@@ -467,7 +479,7 @@ function Home({ user, setUser }) {
               X
             </button>
             <h2>Rezerwuj ogłoszenie</h2>
-            <form onSubmit={handleReserve}>
+            <form onSubmit={handleAddReservation}>
               <label>
                 Data:
                 <input
@@ -477,6 +489,20 @@ function Home({ user, setUser }) {
                     setReservation({
                       ...reservation,
                       date: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </label>
+              <label>
+                Godzina:
+                <input
+                  type="time"
+                  value={reservation.time}
+                  onChange={(e) =>
+                    setReservation({
+                      ...reservation,
+                      time: e.target.value,
                     })
                   }
                   required

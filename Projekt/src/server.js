@@ -248,11 +248,16 @@ app.get("/announcements", cors(corsOptions), async (req, res) => {
 
 // Endpoint do dodawania nowego ogłoszenia
 app.post("/announcements", cors(corsOptions), async (req, res) => {
-  const { title, content, date, teacher_name, subject } = req.body;
+  const { title, content, date, teacher_name, subject, terms = [] } = req.body;
 
-  // Walidacja danych
-  if (!title || !content || !date || !teacher_name || !subject) {
-    return res.status(400).json({ error: "Wszystkie pola są wymagane." });
+  // Dodanie pustej tablicy, jeśli `terms` jest undefined
+  const validTerms = Array.isArray(terms) ? terms : [];
+
+  // Walidacja danych - teraz sprawdza, czy nie ma dodanych terminów
+  if (!terms || terms.length === 0) {
+    return res
+      .status(400)
+      .json({ error: "Przynajmniej jeden termin jest wymagany." });
   }
 
   try {
@@ -266,12 +271,14 @@ app.post("/announcements", cors(corsOptions), async (req, res) => {
       date,
       teacher_name,
       subject,
+      terms: validTerms, // Użycie domyślnej wartości
     };
+    console.log("Dodawane ogłoszenie:", newAnnouncement);
 
     const result = await announcementsCollection.insertOne(newAnnouncement);
-    const addedAnnouncement = await announcementsCollection.findOne({ _id: result.insertedId });
-
-    console.log("Dodano nowe ogłoszenie:", addedAnnouncement);
+    const addedAnnouncement = await announcementsCollection.findOne({
+      _id: result.insertedId,
+    });
 
     res.status(201).json({
       message: "Ogłoszenie dodane pomyślnie.",
@@ -283,8 +290,47 @@ app.post("/announcements", cors(corsOptions), async (req, res) => {
   }
 });
 
+app.post("/announcements/:id/reserve", async (req, res) => {
+  const { id } = req.params; // ID ogłoszenia
+  const { termIndex } = req.body; // Indeks rezerwowanego terminu
 
+  if (typeof termIndex === "undefined") {
+    return res.status(400).json({ error: "Brakuje termIndex w żądaniu" });
+  }
 
+  try {
+    const db = await connectToDb();
+    const announcementsCollection = db.collection("announcements");
+
+    // Znajdź ogłoszenie
+    const announcement = await announcementsCollection.findOne({
+      id: parseInt(id),
+    });
+
+    if (!announcement) {
+      return res.status(404).json({ error: "Ogłoszenie nie znalezione" });
+    }
+
+    // Usuń rezerwowany termin
+    const updatedTerms = announcement.terms.filter(
+      (_, index) => index !== termIndex
+    );
+
+    // Zaktualizuj ogłoszenie
+    await announcementsCollection.updateOne(
+      { id: parseInt(id) },
+      { $set: { terms: updatedTerms } }
+    );
+
+    res.status(200).json({
+      message: "Rezerwacja zakończona sukcesem",
+      updatedTerms,
+    });
+  } catch (error) {
+    console.error("Błąd podczas rezerwacji:", error);
+    res.status(500).json({ error: "Wewnętrzny błąd serwera" });
+  }
+});
 
 // Uruchomienie serwera
 app.listen(port, () => {

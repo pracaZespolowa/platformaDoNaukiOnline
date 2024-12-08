@@ -290,10 +290,13 @@ app.post("/announcements", cors(corsOptions), async (req, res) => {
   }
 });
 
-app.post("/announcements/:id/reserve", async (req, res) => {
-  const { id } = req.params; // ID ogłoszenia
-  const { termIndex } = req.body; // Indeks rezerwowanego terminu
+const { ObjectId } = require("mongodb");
 
+app.post("/announcements/:id/reserve", async (req, res) => {
+  const { id } = req.params; // ID ogłoszenia z URL
+  const { termIndex } = req.body; // Indeks rezerwowanego terminu z treści żądania
+
+  // Sprawdzenie, czy termIndex został przekazany
   if (typeof termIndex === "undefined") {
     return res.status(400).json({ error: "Brakuje termIndex w żądaniu" });
   }
@@ -302,11 +305,15 @@ app.post("/announcements/:id/reserve", async (req, res) => {
     const db = await connectToDb();
     const announcementsCollection = db.collection("announcements");
 
+    // Konwersja id na ObjectId
+    const objectId = new ObjectId(id);
+
     // Znajdź ogłoszenie
     const announcement = await announcementsCollection.findOne({
-      id: parseInt(id),
+      _id: objectId,
     });
 
+    // Sprawdź, czy ogłoszenie istnieje
     if (!announcement) {
       return res.status(404).json({ error: "Ogłoszenie nie znalezione" });
     }
@@ -316,18 +323,20 @@ app.post("/announcements/:id/reserve", async (req, res) => {
       (_, index) => index !== termIndex
     );
 
-    // Zaktualizuj ogłoszenie
+    // Zaktualizuj ogłoszenie w bazie danych
     await announcementsCollection.updateOne(
-      { id: parseInt(id) },
+      { _id: objectId },
       { $set: { terms: updatedTerms } }
     );
 
+    // Zwróć odpowiedź z sukcesem i zaktualizowaną listą terminów
     res.status(200).json({
       message: "Rezerwacja zakończona sukcesem",
       updatedTerms,
     });
   } catch (error) {
     console.error("Błąd podczas rezerwacji:", error);
+    // Obsłuż błąd wewnętrzny serwera
     res.status(500).json({ error: "Wewnętrzny błąd serwera" });
   }
 });

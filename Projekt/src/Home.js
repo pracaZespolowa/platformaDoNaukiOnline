@@ -50,7 +50,13 @@ function Home({ user, setUser }) {
     }
   }, [navigate, setUser]);
 
+  // Funkcja asynchroniczna handleReservation przyjmuje dwa argumenty:
+  // announcementId - identyfikator ogłoszenia
+  // termIndex - indeks wybranego terminu do rezerwacji
   const handleReservation = async (announcementId, termIndex) => {
+    // Tworzymy nową tablicę aktualnych terminów bez tego o indeksie termIndex
+    // Dzięki temu, jeśli rezerwacja się powiedzie, od razu zaktualizujemy UI,
+    // usuwając zarezerwowany termin z listy.
     const updatedTerms = selectedAnnouncement.terms.filter(
       (_, index) => index !== termIndex
     );
@@ -67,8 +73,9 @@ function Home({ user, setUser }) {
         }
       );
 
+      console.log("Rezerwacja:", { announcementId, termIndex });
+
       if (response.ok) {
-        // Aktualizuj widok w UI
         setSelectedAnnouncement((prev) => ({
           ...prev,
           terms: updatedTerms,
@@ -134,7 +141,6 @@ function Home({ user, setUser }) {
     navigate("/");
   };
   const showDetails = (announcement) => {
-    console.log("Wybrane ogłoszenie:", announcement);
     setSelectedAnnouncement(announcement);
   };
 
@@ -358,17 +364,22 @@ function Home({ user, setUser }) {
                         >
                           {term.hour}:{term.minutes}
                         </button>
+
                         {/* Wyświetl przycisk rezerwacji tylko dla wybranego kafelka */}
-                        {selectedTermIndex === index && (
-                          <button
-                            className="reserve-button"
-                            onClick={() =>
-                              handleReservation(selectedAnnouncement.id, index)
-                            }
-                          >
-                            Rezerwuj
-                          </button>
-                        )}
+                        {user?.role === "student" &&
+                          selectedTermIndex === index && (
+                            <button
+                              className="reserve-button"
+                              onClick={() =>
+                                handleReservation(
+                                  selectedAnnouncement._id,
+                                  index
+                                )
+                              }
+                            >
+                              Rezerwuj
+                            </button>
+                          )}
                       </div>
                     ))
                   ) : (

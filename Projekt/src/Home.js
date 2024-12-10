@@ -8,17 +8,32 @@ function Home({ user, setUser }) {
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState("wszystkie");
-  const [showNotifications, setShowNotifications] = useState(false);
 
   const [newAnnouncement, setNewAnnouncement] = useState({
     title: "",
     content: "",
-    date: "",
     teacher_name: user?.firstName + " " + user?.lastName,
     subject: "",
+    terms: [],
+    tempDate: "",
+    tempHour: "",
+    tempMinutes: "",
   });
-  const subjects = [...new Set(announcements.map((item) => item.subject))];
 
+  const [selectedDate, setSelectedDate] = useState(""); // Wybrana data
+
+  // Wygenerowanie unikalnych dat z `terms`
+  const uniqueDates =
+    selectedAnnouncement?.terms?.length > 0
+      ? [...new Set(selectedAnnouncement.terms.map((term) => term.date))]
+      : [];
+
+  // Filtrowanie terminów na podstawie wybranej daty
+  const filteredTerms =
+    selectedAnnouncement?.terms?.filter((term) => term.date === selectedDate) ||
+    [];
+
+  const subjects = [...new Set(announcements.map((item) => item.subject))];
   const filteredAnnouncements =
     selectedSubject === "wszystkie"
       ? announcements
@@ -27,134 +42,62 @@ function Home({ user, setUser }) {
         );
   const navigate = useNavigate();
 
-  const [reservation, setReservation] = useState({
-    announcementId: "",
-    email: user?.id || "",
-    date: "",
-    time: "",
-    subject: "",
-  });
-
-  function formatDateToCustom(dateString) {
-    const date = new Date(dateString);
-
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // Miesiące są liczone od 0, więc dodajemy 1
-    const day = String(date.getDate()).padStart(2, "0");
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-
-    return `${year}-${month}-${day} ${hours}:${minutes}`;
-  }
-
-  const formattedDate = formatDateToCustom("2024-12-01 16:44:00");
-  console.log(formattedDate); // "2024-12-01 16:44"
-
-  const [showReservationForm, setShowReservationForm] = useState(false);
-
-  const openReservationForm = (announcementId) => {
-    if (!user) {
-      alert("Musisz być zalogowany, aby dokonać rezerwacji.");
-      return;
-    }
-
-    setReservation((prev) => ({
-      ...prev,
-      announcementId,
-      email: user.email,
-    }));
-
-    setShowReservationForm(true);
-  };
-
-  const closeReservationForm = () => {
-    setShowReservationForm(false);
-    setReservation({
-      announcementId: "",
-      email: user?.email || "",
-      date: "",
-      time: "",
-    });
-  };
-
-  const fetchReservations = async () => {
-    try {
-      const response = await fetch(
-        `http://localhost:4000/reservations/user?email=${user.email}`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setReservation(data.reservations || []);
-      } else {
-        console.error("Błąd podczas pobierania rezerwacji");
-      }
-    } catch (err) {
-      console.error("Błąd:", err);
-    }
-  };
-
-  const toggleNotifications = () => {
-    setShowNotifications((prev) => !prev);
-    if (!showNotifications) {
-      fetchReservations(); // Pobierz rezerwacje tylko przy otwarciu
-    }
-  };
-
-  const handleAddReservation = async (e) => {
-    e.preventDefault();
-
-    // Dodanie przedmiotu do rezerwacji
-    const announcement = announcements.find(
-      (ann) => ann.id === reservation.announcementId
-    );
-
-    const reservationWithSubject = {
-      ...reservation,
-      subject: announcement?.subject || "", // Dodajemy przedmiot do rezerwacji
-    };
-
-    try {
-      const response = await fetch("http://localhost:4000/reservations", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(reservationWithSubject),
-      });
-
-      if (response.ok) {
-        await fetchReservations(); // Aktualizuj rezerwacje
-        alert("Rezerwację dodano pomyślnie!");
-        closeReservationForm();
-      } else {
-        const errorData = await response.json();
-        console.error("Błąd podczas dodawania rezerwacji:", errorData.error);
-        alert("Błąd podczas dodawania rezerwacji: " + errorData.error);
-      }
-    } catch (err) {
-      console.error("Błąd:", err);
-      alert("Błąd podczas wysyłania danych: " + err.message);
-    }
-  };
-
-  useEffect(() => {
-    console.log("User data in effect:", user);
-  }, [user]);
-
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
     if (savedUser) {
-      const parsedUser = JSON.parse(savedUser);
-      setUser(parsedUser);
-      setReservation((prev) => ({
-        ...prev,
-        email: parsedUser.email,
-      }));
+      setUser(JSON.parse(savedUser));
       navigate("/home");
     }
   }, [navigate, setUser]);
 
-  // Funkcja do pobierania ogłoszeń z API
+  // Funkcja asynchroniczna handleReservation przyjmuje dwa argumenty:
+  // announcementId - identyfikator ogłoszenia
+  // termIndex - indeks wybranego terminu do rezerwacji
+  const handleReservation = async (announcementId, termIndex) => {
+    // Tworzymy nową tablicę aktualnych terminów bez tego o indeksie termIndex
+    // Dzięki temu, jeśli rezerwacja się powiedzie, od razu zaktualizujemy UI,
+    // usuwając zarezerwowany termin z listy.
+    const updatedTerms = selectedAnnouncement.terms.filter(
+      (_, index) => index !== termIndex
+    );
+
+    try {
+      const response = await fetch(
+        `http://localhost:4000/announcements/${announcementId}/reserve`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ termIndex }),
+        }
+      );
+
+      console.log("Rezerwacja:", { announcementId, termIndex });
+
+      if (response.ok) {
+        setSelectedAnnouncement((prev) => ({
+          ...prev,
+          terms: updatedTerms,
+        }));
+
+        setAnnouncements((prev) =>
+          prev.map((announcement) =>
+            announcement.id === announcementId
+              ? { ...announcement, terms: updatedTerms }
+              : announcement
+          )
+        );
+
+        alert("Termin został zarezerwowany!");
+      } else {
+        console.error("Rezerwacja nie powiodła się");
+      }
+    } catch (error) {
+      console.error("Błąd:", error);
+    }
+  };
+
   useEffect(() => {
     const fetchAnnouncements = async () => {
       try {
@@ -175,37 +118,36 @@ function Home({ user, setUser }) {
       }
     };
 
-    fetchAnnouncements(); // Wywołanie na początku do załadowania ogłoszeń
+    fetchAnnouncements();
   }, []);
 
-  // Funkcja do przełączania widoczności opcji profilu
+  const [selectedTermIndex, setSelectedTermIndex] = useState(null);
+
+  const handleTermClick = (index) => {
+    setSelectedTermIndex(index);
+  };
+
   const toggleOptions = () => {
     setShowOptions((prev) => !prev);
   };
 
-  // Funkcja do przejścia do zarządzania kontem
   const handleManageAccount = () => {
     navigate("/zarzadzaj");
   };
 
-  // Funkcja do wylogowywania użytkownika
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem("user");
     navigate("/");
   };
-
-  // Funkcja do wyświetlania szczegółów ogłoszenia
   const showDetails = (announcement) => {
     setSelectedAnnouncement(announcement);
   };
 
-  // Funkcja do zamykania modalnego okna
   const closeModal = () => {
     setSelectedAnnouncement(null);
   };
 
-  // Funkcja do otwierania formularza dodawania ogłoszenia
   const openAddForm = () => {
     setShowAddForm(true);
   };
@@ -214,21 +156,24 @@ function Home({ user, setUser }) {
     setSelectedSubject(event.target.value);
   };
 
-  // Funkcja do zamykania formularza dodawania ogłoszenia
   const closeAddForm = () => {
     setShowAddForm(false);
     setNewAnnouncement({
       title: "",
       content: "",
-      date: "",
       teacher_name: user?.firstName + " " + user?.lastName,
       subject: "",
+      terms: [],
+      tempDate: "",
+      tempHour: "",
+      tempMinutes: "",
     });
   };
 
-  // Funkcja do obsługi wysyłania nowego ogłoszenia
   const handleAddAnnouncement = async (e) => {
     e.preventDefault();
+
+    console.log("Dodawanie ogłoszenia:", newAnnouncement);
 
     try {
       const response = await fetch("http://localhost:4000/announcements", {
@@ -247,9 +192,8 @@ function Home({ user, setUser }) {
         );
         if (updatedAnnouncementsResponse.ok) {
           const updatedData = await updatedAnnouncementsResponse.json();
-          setAnnouncements(updatedData.announcements); // Aktualizacja stanu ogłoszeń
-
-          alert("Ogłoszenie dodano pomyślnie!");
+          setAnnouncements(updatedData.announcements);
+          // Możesz dodać tu komunikat wewnątrz aplikacji, np. setMessage("Dodano pomyślnie!")
         } else {
           console.error(
             "Błąd podczas pobierania zaktualizowanej listy ogłoszeń"
@@ -259,76 +203,68 @@ function Home({ user, setUser }) {
       } else {
         const errorData = await response.json();
         console.error("Błąd podczas dodawania ogłoszenia:", errorData.error);
-        alert("Błąd podczas dodawania ogłoszenia: " + errorData.error);
+        // Usuń alert, pozostaw console.error
       }
     } catch (err) {
       console.error("Błąd:", err);
-      alert("Błąd podczas wysyłania danych: " + err.message);
+      // Usuń alert, pozostaw console.error
     }
+  };
+
+  // Usunięto walidację po stronie frontendu dla terminu
+  const handleAddTerm = () => {
+    const newTerm = {
+      date: newAnnouncement.tempDate || "",
+      hour: newAnnouncement.tempHour
+        ? newAnnouncement.tempHour.padStart(2, "0")
+        : "",
+      minutes: newAnnouncement.tempMinutes
+        ? newAnnouncement.tempMinutes.padStart(2, "0")
+        : "",
+    };
+
+    setNewAnnouncement((prev) => ({
+      ...prev,
+      terms: [...prev.terms, newTerm],
+      tempDate: "",
+      tempHour: "",
+      tempMinutes: "",
+    }));
+  };
+
+  const removeTerm = (index) => {
+    setNewAnnouncement((prev) => ({
+      ...prev,
+      terms: prev.terms.filter((_, i) => i !== index),
+    }));
   };
 
   return (
     <div className="home-container">
       <header>
-        <div className="profile-options-container">
-          <div
-            className="profile"
-            onClick={toggleOptions}
-            role="button"
-            aria-label="Pokaż opcje"
-          >
-            <div className="avatar-placeholder"></div>
-            {showOptions && (
-              <div className="profile-options">
-                <p className="user-email">{user?.email}</p>
-                <button
-                  onClick={handleManageAccount}
-                  className="manage-account-button"
-                >
-                  Zarządzaj kontem
-                </button>
-                <button onClick={handleLogout} className="logout-button">
-                  Wyloguj się
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div className="notification-bell" onClick={toggleNotifications}>
-            <span role="img" aria-label="Dzwonek">
-              🔔
-            </span>
-            {reservation.length > 0 && (
-              <span className="notification-count">{reservation.length}</span>
-            )}
-          </div>
-        </div>
-      </header>
-
-      {showNotifications && (
-        <div className="notification-dropdown">
-          <div className="close-notifications" onClick={toggleNotifications}>
-            ❌
-          </div>
-          <h3>Twoje Rezerwacje</h3>
-          {reservation.length > 0 ? (
-            <ul className="reservation-list">
-              {reservation.map((reservation, index) => {
-                const date = formatDateToCustom(reservation.date);
-                return (
-                  <li key={index}>
-                    <p>Przedmiot: {reservation.subject}</p>
-                    <p>Data: {date}</p>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <p>Brak rezerwacji</p>
+        <div
+          className="profile"
+          onClick={toggleOptions}
+          role="button"
+          aria-label="Pokaż opcje"
+        >
+          <div className="avatar-placeholder"></div>
+          {showOptions && (
+            <div className="profile-options">
+              <p className="user-email">{user?.email}</p>
+              <button
+                onClick={handleManageAccount}
+                className="manage-account-button"
+              >
+                Zarządzaj kontem
+              </button>
+              <button onClick={handleLogout} className="logout-button">
+                Wyloguj się
+              </button>
+            </div>
           )}
         </div>
-      )}
-
+      </header>
       <h1>Witaj w aplikacji, {user?.firstName}!</h1>
 
       <section className="sekcja-filtrów">
@@ -366,14 +302,13 @@ function Home({ user, setUser }) {
                 <h3>{announcement.title}</h3>
                 <h4>{announcement.teacher_name}</h4>
                 <p className="data-ogloszenia">{announcement.date}</p>
-                <button onClick={() => showDetails(announcement)}>
-                  Szczegóły
+                <button
+                  onClick={() => showDetails(announcement)}
+                  className="details-button"
+                  aria-label={`Zobacz szczegóły ogłoszenia ${announcement.title}`}
+                >
+                  <span className="details-button-icon">ℹ️</span> Szczegóły
                 </button>
-                {user?.role === "student" && (
-                  <button onClick={() => openReservationForm(announcement.id)}>
-                    Rezerwuj
-                  </button>
-                )}
               </li>
             ))}
           </ul>
@@ -382,7 +317,6 @@ function Home({ user, setUser }) {
         )}
       </section>
 
-      {/* Modalne okno ze szczegółami ogłoszenia */}
       {selectedAnnouncement && (
         <div className="modal-overlay">
           <div className="modal">
@@ -394,11 +328,72 @@ function Home({ user, setUser }) {
             <p>{selectedAnnouncement.content}</p>
             <p className="data-ogloszenia">{selectedAnnouncement.date}</p>
             <p>{selectedAnnouncement.subject}</p>
+            <div>
+              {/* Select do wyboru dnia */}
+              <label>
+                Wybierz dzień:
+                <select
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                >
+                  <option value="" disabled>
+                    Wybierz dzień
+                  </option>
+                  {uniqueDates.map((date, index) => (
+                    <option key={index} value={date}>
+                      {date}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              {/* Wyświetlanie kafelków z godzinami po wybraniu dnia */}
+              {selectedDate ? (
+                <div className="tile-container">
+                  {filteredTerms.length > 0 ? (
+                    filteredTerms.map((term, index) => (
+                      <div
+                        key={`${term.date}-${term.hour}-${term.minutes}-${index}`}
+                        className="tile-wrapper"
+                      >
+                        <button
+                          className={`tile ${
+                            selectedTermIndex === index ? "selected" : ""
+                          }`}
+                          onClick={() => setSelectedTermIndex(index)}
+                        >
+                          {term.hour}:{term.minutes}
+                        </button>
+
+                        {/* Wyświetl przycisk rezerwacji tylko dla wybranego kafelka */}
+                        {user?.role === "student" &&
+                          selectedTermIndex === index && (
+                            <button
+                              className="reserve-button"
+                              onClick={() =>
+                                handleReservation(
+                                  selectedAnnouncement._id,
+                                  index
+                                )
+                              }
+                            >
+                              Rezerwuj
+                            </button>
+                          )}
+                      </div>
+                    ))
+                  ) : (
+                    <p>Brak dostępnych godzin :(</p>
+                  )}
+                </div>
+              ) : (
+                <p>Wybierz dzień, aby zobaczyć dostępne godziny.</p>
+              )}
+            </div>
           </div>
         </div>
       )}
 
-      {/* Formularz dodawania ogłoszenia */}
       {showAddForm && (
         <div className="modal-overlay">
           <div className="modal">
@@ -420,9 +415,10 @@ function Home({ user, setUser }) {
                       title: e.target.value,
                     })
                   }
-                  required
+                  // Usuń required
                 />
               </label>
+
               <label>
                 Treść:
                 <textarea
@@ -433,23 +429,10 @@ function Home({ user, setUser }) {
                       content: e.target.value,
                     })
                   }
-                  required
+                  // Usuń required
                 ></textarea>
               </label>
-              <label>
-                Data:
-                <input
-                  type="date"
-                  value={newAnnouncement.date}
-                  onChange={(e) =>
-                    setNewAnnouncement({
-                      ...newAnnouncement,
-                      date: e.target.value,
-                    })
-                  }
-                  required
-                />
-              </label>
+
               <label>
                 Przedmiot:
                 <input
@@ -461,55 +444,67 @@ function Home({ user, setUser }) {
                       subject: e.target.value,
                     })
                   }
-                  required
+                  // Usuń required
                 />
               </label>
-              <button type="submit" className="confirm-button">
-                Dodaj ogłoszenie
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
 
-      {showReservationForm && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <button className="close-button" onClick={closeReservationForm}>
-              X
-            </button>
-            <h2>Rezerwuj ogłoszenie</h2>
-            <form onSubmit={handleAddReservation}>
               <label>
-                Data:
+                Termin odbycia korepetycji (opcjonalnie):
                 <input
                   type="date"
-                  value={reservation.date}
+                  value={newAnnouncement.tempDate}
                   onChange={(e) =>
-                    setReservation({
-                      ...reservation,
-                      date: e.target.value,
+                    setNewAnnouncement({
+                      ...newAnnouncement,
+                      tempDate: e.target.value,
                     })
                   }
-                  required
                 />
-              </label>
-              <label>
-                Godzina:
                 <input
-                  type="time"
-                  value={reservation.time}
+                  type="number"
+                  min="0"
+                  max="23"
+                  placeholder="Godzina"
+                  value={newAnnouncement.tempHour}
                   onChange={(e) =>
-                    setReservation({
-                      ...reservation,
-                      time: e.target.value,
+                    setNewAnnouncement({
+                      ...newAnnouncement,
+                      tempHour: e.target.value,
                     })
                   }
-                  required
                 />
+                <input
+                  type="number"
+                  min="0"
+                  max="59"
+                  placeholder="Minuty"
+                  value={newAnnouncement.tempMinutes}
+                  onChange={(e) =>
+                    setNewAnnouncement({
+                      ...newAnnouncement,
+                      tempMinutes: e.target.value,
+                    })
+                  }
+                />
+                <button type="button" onClick={handleAddTerm}>
+                  Dodaj termin
+                </button>
               </label>
+
+              <h3>Dodane terminy:</h3>
+              <ul>
+                {newAnnouncement.terms.map((term, index) => (
+                  <li key={index}>
+                    {term.date} - {term.hour}:{term.minutes}
+                    <button type="button" onClick={() => removeTerm(index)}>
+                      Usuń
+                    </button>
+                  </li>
+                ))}
+              </ul>
+
               <button type="submit" className="confirm-button">
-                Rezerwuj
+                Dodaj ogłoszenie
               </button>
             </form>
           </div>

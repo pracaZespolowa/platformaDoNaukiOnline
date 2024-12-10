@@ -1,5 +1,5 @@
 .home-container {
-  padding: 20px;
+    padding: 20px;
 }
 
 /* Ustawienie profilu z awatarem na prawo */
@@ -8,7 +8,7 @@ header {
   justify-content: flex-end; /* Ustawienie elementów w nagłówku na prawo */
   align-items: center;
   padding: 10px;
-  background-color: #f8f8f8;
+  background-color: #f8f8f8; 
 }
 /* test  */
 .profile {
@@ -243,7 +243,7 @@ header {
 /* Styl przycisków */
 .add-announcement-button,
 .confirm-button {
-  background-color: #4caf50;
+  background-color: #4CAF50;
   color: white;
   padding: 10px 20px;
   border: none;
@@ -297,7 +297,7 @@ textarea {
 }
 
 .add-announcement-button {
-  background-color: #4caf50;
+  background-color: #4CAF50;
   color: white;
   padding: 8px 16px;
   border: none;
@@ -356,105 +356,214 @@ textarea {
   font-size: 16px;
   color: #555;
 }
-/* Stylizacja kontenera nagłówka */
-/* Stylizacja kontenera nagłówka */
-header {
+
+.tile-container {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px; /* Odstępy między kafelkami */
+  margin-top: 10px;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
   align-items: center;
+  padding: 10px 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #ffffff;
+  color: #333;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.reserve-button {
+  margin-top: 5px;
+  padding: 8px 12px;
+  font-size: 14px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.reserve-button:hover {
+  background-color: #0056b3;
+}
+
+.reserve-button:active {
+  background-color: #003a75;
+}
+
+.tile:hover {
+  background-color: #007bff; /* Kolor na hover */
+  color: #fff;
+}
+
+.tile:active {
+  background-color: #0056b3;
+}
+
+.tile.selected {
+  background-color: #007bff;
+  color: #fff;
+  border-color: #0056b3;
+}
+
+select {
+  margin: 10px 0;
+  padding: 8px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.tile-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tile {
   padding: 10px 20px;
-  background-color: #fff; /* Przykładowy kolor tła */
-  border-bottom: 1px solid #ddd;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Kontener dla profilu i dzwoneczka, wyrównanie do prawej */
-.profile-options-container {
-  display: flex;
-  justify-content: flex-end; /* Wyrównanie elementów do prawej strony */
-  align-items: center; /* Wyrównanie elementów w pionie */
-  flex-grow: 1; /* Zapewnienie, że kontener zajmuje całą dostępną szerokość */
+.tile:hover {
+  background-color: #007bff;
+  color: #fff;
 }
 
-/* Stylizacja profilu */
-.profile {
+.tile.selected {
+  background-color: #007bff;
+  color: #fff;
+  border-color: #0056b3;
+}
+
+.tile-container {
   display: flex;
+  flex-wrap: wrap;
+  gap: 10px; /* Odstępy między kafelkami */
+  margin-top: 10px;
+}
+
+.tile {
+  padding: 10px 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #ffffff;
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.tile:hover {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.tile.selected {
+  background-color: #0056b3;
+  color: #fff;
+  border-color: #003a75;
+}
+
+select {
+  margin: 10px 0;
+  padding: 8px 12px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #ffffff;
+  color: #333;
+}
+
+.details-button {
+  display: inline-flex;
   align-items: center;
+  gap: 8px; /* Odstęp między ikoną a tekstem */
+  padding: 10px 15px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #ffffff;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
   cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Placeholder dla awatara */
-.avatar-placeholder {
-  width: 40px;
-  height: 40px;
-  background-color: #ccc;
-  border-radius: 50%;
-  margin-right: 10px;
+.details-button-icon {
+  font-size: 20px;
 }
 
-/* Stylizacja dzwoneczka */
-.notification-bell {
+.details-button:hover {
+  background-color: #0056b3;
+  transform: scale(1.05);
+}
+
+.bell-container {
   position: relative;
-  cursor: pointer;
-  margin-left: 20px; /* Odstęp od profilu */
+  display: inline-block;
 }
 
-/* Stylizacja licznika powiadomień */
-.notification-count {
+.bell-icon {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  position: relative;
+}
+
+.badge {
   position: absolute;
   top: -5px;
   right: -5px;
-  background-color: red;
+  background: red;
   color: white;
   border-radius: 50%;
   padding: 2px 6px;
   font-size: 12px;
 }
 
-/* Stylizacja rozwijanego panelu powiadomień */
-.notification-dropdown {
+.notifications-dropdown {
   position: absolute;
-  top: 80px;
-  right: 10px;
-  background-color: white;
+  top: 40px;
+  right: 0;
+  background: white;
   border: 1px solid #ccc;
   border-radius: 4px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
   width: 300px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.notifications-dropdown h4 {
+  margin: 0;
+  padding: 10px;
+  background: #f7f7f7;
+  border-bottom: 1px solid #ccc;
+}
+
+.notifications-dropdown ul {
+  list-style: none;
+  margin: 0;
   padding: 10px;
 }
 
-.notification-dropdown h3 {
-  margin: 0;
-  font-size: 16px;
+.notifications-dropdown ul li {
+  margin-bottom: 10px;
+  font-size: 14px;
 }
 
-.reservation-list {
-  list-style: none;
-  padding: 0;
-  margin: 10px 0;
-}
-
-.reservation-list li {
-  border-bottom: 1px solid #ccc;
-  padding: 5px 0;
-}
-
-.reservation-list li:last-child {
-  border-bottom: none;
-}
-
-.close-notifications {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  background-color: transparent;
-  border: none;
-  font-size: 18px;
-  color: #555;
-  cursor: pointer;
-}
-
-.close-notifications:hover {
-  color: #000;
+.notifications-dropdown ul li:last-child {
+  margin-bottom: 0;
 }

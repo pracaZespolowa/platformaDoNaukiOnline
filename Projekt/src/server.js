@@ -4,14 +4,13 @@ const bcrypt = require("bcrypt");
 const path = require("path");
 const { error } = require("console");
 const cors = require("cors");
-const { ObjectId } = require("mongodb");
 
 const app = express();
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "/../projekt")));
+app.use(express.static(path.join(__dirname, "/../projekt"))); // Ścieżka do statycznych plików
 
 const corsOptions = {
-  origin: "http://localhost:3000",
+  origin: "http://localhost:3000", // Zmień na URL swojej aplikacji front-end
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true, // Czy zezwalać na przesyłanie ciasteczek
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -24,7 +23,6 @@ const uri =
 const dbName = "userAuthDB";
 const collectionName = "users";
 const announcementsCollectionName = "announcements";
-const reservationsCollectionName = "reservations";
 const port = 4000;
 
 // Funkcja do połączenia z bazą danych
@@ -250,11 +248,16 @@ app.get("/announcements", cors(corsOptions), async (req, res) => {
 
 // Endpoint do dodawania nowego ogłoszenia
 app.post("/announcements", cors(corsOptions), async (req, res) => {
-  const { title, content, date, teacher_name, subject } = req.body;
+  const { title, content, date, teacher_name, subject, terms = [] } = req.body;
 
-  // Walidacja danych
-  if (!title || !content || !date || !teacher_name || !subject) {
-    return res.status(400).json({ error: "Wszystkie pola są wymagane." });
+  // Dodanie pustej tablicy, jeśli `terms` jest undefined
+  const validTerms = Array.isArray(terms) ? terms : [];
+
+  // Walidacja danych - teraz sprawdza, czy nie ma dodanych terminów
+  if (!terms || terms.length === 0) {
+    return res
+      .status(400)
+      .json({ error: "Przynajmniej jeden termin jest wymagany." });
   }
 
   try {
@@ -268,14 +271,14 @@ app.post("/announcements", cors(corsOptions), async (req, res) => {
       date,
       teacher_name,
       subject,
+      terms: validTerms, // Użycie domyślnej wartości
     };
+    console.log("Dodawane ogłoszenie:", newAnnouncement);
 
     const result = await announcementsCollection.insertOne(newAnnouncement);
     const addedAnnouncement = await announcementsCollection.findOne({
       _id: result.insertedId,
     });
-
-    console.log("Dodano nowe ogłoszenie:", addedAnnouncement);
 
     res.status(201).json({
       message: "Ogłoszenie dodane pomyślnie.",
@@ -287,68 +290,54 @@ app.post("/announcements", cors(corsOptions), async (req, res) => {
   }
 });
 
-app.post("/reservations", cors(corsOptions), async (req, res) => {
-  const { announcementId, email, date, subject, time } = req.body;
+const { ObjectId } = require("mongodb");
 
-  if (!announcementId || !email || !date || !subject || !time) {
-    return res.status(400).json({ error: "Wszystkie pola są wymagane!" });
+app.post("/announcements/:id/reserve", async (req, res) => {
+  const { id } = req.params; // ID ogłoszenia z URL
+  const { termIndex } = req.body; // Indeks rezerwowanego terminu z treści żądania
+
+  // Sprawdzenie, czy termIndex został przekazany
+  if (typeof termIndex === "undefined") {
+    return res.status(400).json({ error: "Brakuje termIndex w żądaniu" });
   }
 
   try {
     const db = await connectToDb();
-    const reservationsCollection = db.collection(reservationsCollectionName);
-    //łaczenie daty i godziny
-    const fullDateTime = `${date}T${time}:00`;
+    const announcementsCollection = db.collection("announcements");
 
-    // Tworzenie nowej rezerwacji
-    const newReservation = {
-      announcementId,
-      email,
-      date: fullDateTime,
-      subject,
-    };
+    // Konwersja id na ObjectId
+    const objectId = new ObjectId(id);
 
-    const result = await reservationsCollection.insertOne(newReservation);
-    const addedReservation = await reservationsCollection.findOne({
-      _id: result.insertedId,
+    // Znajdź ogłoszenie
+    const announcement = await announcementsCollection.findOne({
+      _id: objectId,
     });
 
-    res.status(201).json({
-      message: "Rezerwacje dodano pomyślnie.",
-      reservation: addedReservation,
-    });
-  } catch (err) {
-    console.log("Błąd podczas dodawania ogłoszenia", err);
-    res.status(505).json({ error: "Wewnętrzny błąd serwera" });
-  }
-});
-
-// Endpoint do pobierania rezerwacji dla użytkownika
-app.get("/reservations/user", cors(corsOptions), async (req, res) => {
-  const { email } = req.query;
-
-  if (!email) {
-    return res.status(400).json({ error: "Email jest wymagany." });
-  }
-
-  try {
-    const db = await connectToDb();
-    const reservationsCollection = db.collection(reservationsCollectionName);
-
-    // Szukamy wszystkich rezerwacji dla danego użytkownika
-    const reservations = await reservationsCollection.find({ email }).toArray();
-
-    if (reservations.length === 0) {
-      return res
-        .status(404)
-        .json({ error: "Brak rezerwacji dla tego użytkownika." });
+    // Sprawdź, czy ogłoszenie istnieje
+    if (!announcement) {
+      return res.status(404).json({ error: "Ogłoszenie nie znalezione" });
     }
 
-    // Zwracamy znalezione rezerwacje
-    res.status(200).json({ reservations });
-  } catch (err) {
-    console.error("Błąd podczas pobierania rezerwacji:", err);
-    res.status(500).json({ error: "Wewnętrzny błąd serwera." });
+    // Usuń rezerwowany termin
+    const updatedTerms = announcement.terms.filter(
+      (_, index) => index !== termIndex
+    );
+
+    // Zaktualizuj ogłoszenie w bazie danych
+    await announcementsCollection.updateOne(
+      { _id: objectId },
+      { $set: { terms: updatedTerms } }
+    );
+
+    // Zwróć odpowiedź z sukcesem i zaktualizowaną listą terminów
+    res.status(200).json({
+      message: "Rezerwacja zakończona sukcesem",
+      updatedTerms,
+    });
+  } catch (error) {
+    console.error("Błąd podczas rezerwacji:", error);
+    // Obsłuż błąd wewnętrzny serwera
+    res.status(500).json({ error: "Wewnętrzny błąd serwera" });
   }
 });
 

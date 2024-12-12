@@ -1,0 +1,85 @@
+.reservations-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Lista rezerwacji */
+.reservations-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+/* Pojedynczy element rezerwacji */
+.reservation-item {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    background-color: #f9f9f9;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.reservation-item h3 {
+    margin: 0 0 10px;
+    font-size: 18px;
+    color: #333;
+}
+
+.reservation-item p {
+    margin: 5px 0;
+    font-size: 16px;
+    color: #555;
+}
+
+/* Data rezerwacji w prawym dolnym rogu */
+.reservation-date {
+    font-size: 14px;
+    color: #888;
+    text-align: right;
+    margin-top: 10px;
+}
+
+.main-content {
+    display: flex;
+    width: 70%;
+}
+
+.back-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.home-icon {
+    width: 24px;
+    height: 24px;
+}
+
+.accept-button {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+.decline-button {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.status-message {
+    color: green;
+    font-weight: bold;
+    margin-top: 10px;
+}

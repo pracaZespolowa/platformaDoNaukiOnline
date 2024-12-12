@@ -23,6 +23,8 @@ const uri =
 const dbName = "userAuthDB";
 const collectionName = "users";
 const announcementsCollectionName = "announcements";
+const notificationsCollectionName = "notifications";
+const reservationsCollectionName = "reservations";
 const port = 4000;
 
 // Funkcja do połączenia z bazą danych
@@ -248,7 +250,7 @@ app.get("/announcements", cors(corsOptions), async (req, res) => {
 
 // Endpoint do dodawania nowego ogłoszenia
 app.post("/announcements", cors(corsOptions), async (req, res) => {
-  const { title, content, date, teacher_name, subject, terms = [] } = req.body;
+  const { title, content, date, teacher_name, teacher_email, subject, terms = [] } = req.body;
 
   // Dodanie pustej tablicy, jeśli `terms` jest undefined
   const validTerms = Array.isArray(terms) ? terms : [];
@@ -270,6 +272,7 @@ app.post("/announcements", cors(corsOptions), async (req, res) => {
       content,
       date,
       teacher_name,
+      teacher_email,
       subject,
       terms: validTerms, // Użycie domyślnej wartości
     };
@@ -291,10 +294,11 @@ app.post("/announcements", cors(corsOptions), async (req, res) => {
 });
 
 const { ObjectId } = require("mongodb");
+const { create } = require("domain");
 
 app.post("/announcements/:id/reserve", async (req, res) => {
   const { id } = req.params; // ID ogłoszenia z URL
-  const { termIndex } = req.body; // Indeks rezerwowanego terminu z treści żądania
+  const { termIndex, email } = req.body; // Indeks rezerwowanego terminu z treści żądania
 
   // Sprawdzenie, czy termIndex został przekazany
   if (typeof termIndex === "undefined") {
@@ -303,7 +307,8 @@ app.post("/announcements/:id/reserve", async (req, res) => {
 
   try {
     const db = await connectToDb();
-    const announcementsCollection = db.collection("announcements");
+    const announcementsCollection = db.collection(announcementsCollectionName);
+    const reservationsCollection = db.collection(reservationsCollectionName);
 
     // Konwersja id na ObjectId
     const objectId = new ObjectId(id);
@@ -318,6 +323,13 @@ app.post("/announcements/:id/reserve", async (req, res) => {
       return res.status(404).json({ error: "Ogłoszenie nie znalezione" });
     }
 
+    // Sprawdź, czy podany indeks terminu jest prawidłowy
+    if (!announcement.terms || !announcement.terms[termIndex]) {
+      return res.status(400).json({ error: "Nieprawidłowy indeks terminu" });
+    }
+
+    const reservedTerm = announcement.terms[termIndex];
+
     // Usuń rezerwowany termin
     const updatedTerms = announcement.terms.filter(
       (_, index) => index !== termIndex
@@ -329,10 +341,32 @@ app.post("/announcements/:id/reserve", async (req, res) => {
       { $set: { terms: updatedTerms } }
     );
 
+    const teacher_email = announcement.teacher_email;
+
+    // Utwórz nowy rekord w kolekcji "reservations"
+    const reservation = {
+      announcementId: id,
+      email: email,
+      subject: announcement.subject,
+      teacher_name: announcement.teacher_name,
+      teacher_email: teacher_email,
+      date: reservedTerm,
+      accepted: false,
+      createdAt: new Date(),
+    };
+
+    await reservationsCollection.insertOne(reservation);
+
+    const data = { updatedTerms, reservation, teacher_email };
+
+    console.log("teacher email",teacher_email);
+
     // Zwróć odpowiedź z sukcesem i zaktualizowaną listą terminów
     res.status(200).json({
       message: "Rezerwacja zakończona sukcesem",
       updatedTerms,
+      reservation,
+      teacher_email,
     });
   } catch (error) {
     console.error("Błąd podczas rezerwacji:", error);
@@ -340,6 +374,272 @@ app.post("/announcements/:id/reserve", async (req, res) => {
     res.status(500).json({ error: "Wewnętrzny błąd serwera" });
   }
 });
+
+// Endpoint do pobierania powiadomień dla danego użytkownika
+app.get("/notifications/user/:userEmail", cors(corsOptions), async (req, res) => {
+  const { userEmail } = req.params;
+
+  if (!userEmail) {
+    return res.status(400).json({ error: "Brak identyfikatora użytkownika." });
+  }
+
+  try {
+    const db = await connectToDb();
+    const notificationsCollection = db.collection(notificationsCollectionName);
+
+    const notifications = await notificationsCollection
+      .find({ userEmail: userEmail })
+      .toArray();
+
+    if (notifications.length === 0) {
+      return res.status(404).json({ error: "Brak powiadomień dla tego użytkownika." });
+    }
+
+    res.status(200).json({ notifications });
+  } catch (err) {
+    console.error("Błąd podczas pobierania powiadomień:", err);
+    res.status(500).json({ error: "Wewnętrzny błąd serwera" });
+  }
+});
+
+// Endpoint do dodawania nowego powiadomienia
+app.post("/notifications", cors(corsOptions), async (req, res) => {
+  const { title, message, date, userEmail } = req.body;
+
+  if (!title || !message || !date || !userEmail) {
+    return res
+      .status(400)
+      .json({ error: "Wszystkie pola (title, message, date, userEmail) są wymagane." });
+  }
+
+  try {
+    const db = await connectToDb();
+    const notificationsCollection = db.collection(notificationsCollectionName);
+
+    const newNotification = {
+      title,
+      message,
+      date,
+      userEmail,
+    };
+
+    await notificationsCollection.insertOne(newNotification);
+    
+
+    console.log("Dodawane powiadomienie:", newNotification);
+
+    res.status(201).json({
+      message: "Powiadomienie dodane pomyślnie.",
+      newNotification,
+    });
+  } catch (err) {
+    console.error("Błąd podczas dodawania powiadomienia:", err);
+    res.status(500).json({ error: "Wewnętrzny błąd serwera" });
+  }
+});
+
+// Endpoint do usuwania powiadomienia po ID
+app.delete("/notifications/delete/:notificationId", cors(corsOptions), async (req, res) => {
+  const { notificationId } = req.params;
+
+  if (!notificationId) {
+    return res.status(400).json({ error: "Brak identyfikatora powiadomienia." });
+  }
+
+  try {
+    const db = await connectToDb();
+    const notificationsCollection = db.collection(notificationsCollectionName);
+
+    const result = await notificationsCollection.deleteOne({ _id: new ObjectId(notificationId) });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: "Powiadomienie nie znalezione" });
+    }
+
+    res.status(200).json({ message: "Powiadomienie usunięte pomyślnie" });
+  } catch (err) {
+    console.error("Błąd podczas usuwania powiadomienia:", err);
+    res.status(500).json({ error: "Wewnętrzny błąd serwera" });
+  }
+});
+
+// Endpoint do pobierania rezerwacji dla danego użytkownika
+app.get("/reservations/user/:userEmail", cors(corsOptions), async (req, res) => {
+  const { userEmail } = req.params;
+
+  if (!userEmail) {
+    return res.status(400).json({ error: "Brak identyfikatora użytkownika." });
+  }
+
+  try {
+    const db = await connectToDb();
+    const reservationsCollection = db.collection(reservationsCollectionName);
+
+    const reservations = await reservationsCollection
+      .find({ email: userEmail })
+      .toArray();
+
+    if (reservations.length === 0) {
+      return res.status(404).json({ error: "Brak rezerwacji dla tego użytkownika." });
+    }
+
+    res.status(200).json({ reservations });
+  } catch (err) {
+    console.error("Błąd podczas pobierania rezerwacji:", err);
+    res.status(500).json({ error: "Wewnętrzny błąd serwera" });
+  }
+});
+
+// Endpoint do pobierania rezerwacji dla danego nauczyciela
+app.get("/reservations/teacher/:teacherEmail", cors(corsOptions), async (req, res) => {
+  const { teacherEmail } = req.params;
+
+  if (!teacherEmail) {
+    return res.status(400).json({ error: "Brak identyfikatora użytkownika." });
+  }
+
+  try {
+    const db = await connectToDb();
+    const reservationsCollection = db.collection(reservationsCollectionName);
+
+    const reservations = await reservationsCollection
+      .find({ teacher_email: teacherEmail })
+      .toArray();
+
+    if (reservations.length === 0) {
+      return res.status(404).json({ error: "Brak rezerwacji do akceptacji dla tego użytkownika." });
+    }
+
+    res.status(200).json({ reservations });
+  } catch (err) {
+    console.error("Błąd podczas pobierania rezerwacji:", err);
+    res.status(500).json({ error: "Wewnętrzny błąd serwera" });
+  }
+});
+
+// Endpoint do akceptacji rezerwacji
+app.get("/reservation/accept/:reservationId", cors(corsOptions), async (req, res) => {
+  const { reservationId } = req.params;
+
+  if (!reservationId) {
+    return res.status(400).json({ error: "Brak id rezerwacji." });
+  }
+
+  try {
+    const db = await connectToDb();
+    const reservationsCollection = db.collection(reservationsCollectionName);
+
+    // Konwersja id na ObjectId
+    const objectId = new ObjectId(reservationId);
+
+    // Sprawdź, czy rezerwacja istnieje
+    const reservation = await reservationsCollection
+      .findOne({ _id: objectId });
+    if (!reservation) {
+      return res.status(404).json({ error: "Rezerwacja nie znaleziona" });
+    }
+
+    // Sprawdzenie, czy rezerwacja nie została już zaakceptowana
+    if (reservation.accepted) {
+      return res.status(200).json({ 
+        message: "Rezerwacja została już zaakceptowana.", 
+        reservation,
+      });
+    }
+
+    // Zaktualizuj rezerwacje w bazie danych
+    const result = await reservationsCollection.updateOne(
+      { _id: objectId },
+      { $set: { accepted: true } }
+    );
+    
+    if (result.matchedCount === 0) {
+      return res.status(500).json({ error: "Nie udało się zaktualizować rezerwacji." });
+    }
+
+    // Sprawdzenie, czy aktualizacja się powiodła
+    if (result.matchedCount === 0) {
+      return res.status(500).json({ error: "Nie udało się zaktualizować rezerwacji." });
+    }
+
+    // Pobranie zaktualizowanej rezerwacji
+    const updatedReservation = await reservationsCollection.findOne({ _id: objectId });
+
+    const userEmail = reservation.email;
+    const data = { updatedReservation, userEmail };
+
+
+    res.status(200).json({ 
+      message: "Rezerwacja została zaakceptowana.", 
+      userEmail,
+      updatedReservation,
+    });
+  } catch (err) {
+    console.error("Błąd podczas pobierania rezerwacji:", err);
+    res.status(500).json({ error: "Wewnętrzny błąd serwera" });
+  }
+});
+
+// Endpoint do odrzucania rezerwacji
+app.delete("/reservation/decline/:reservationId", cors(corsOptions), async (req, res) => {
+  const { reservationId } = req.params;
+
+  // Sprawdzenie, czy ID zostało podane
+  if (!reservationId) {
+    return res.status(400).json({ error: "Brak id rezerwacji." });
+  }
+
+  try {
+    const db = await connectToDb();
+    const reservationsCollection = db.collection(reservationsCollectionName);
+    const announcementsCollection = db.collection(announcementsCollectionName);
+
+    // Walidacja ObjectId
+    let objectId;
+    try {
+      objectId = new ObjectId(reservationId);
+    } catch (error) {
+      return res.status(400).json({ error: "Nieprawidłowe ID rezerwacji." });
+    }
+
+    // Sprawdzenie, czy rezerwacja istnieje
+    const reservation = await reservationsCollection.findOne({ _id: objectId });
+    if (!reservation) {
+      return res.status(404).json({ error: "Rezerwacja nie znaleziona." });
+    }
+
+    // Usunięcie rezerwacji z bazy danych
+    const result = await reservationsCollection.deleteOne({ _id: objectId });
+
+    // Sprawdzenie, czy usunięcie się powiodło
+    if (result.deletedCount === 0) {
+      return res.status(500).json({ error: "Nie udało się usunąć rezerwacji." });
+    }
+
+    // Ponowne dodawanie terminu do ogłoszenia
+    if (reservation.date) {
+      const objectIdAnnouncement = new ObjectId(reservation.announcementId);
+      const term = new Object(reservation.date);
+      const pushResult = await announcementsCollection.updateOne(
+        { _id: objectIdAnnouncement }, // Zakładając, że ogłoszenie ma ID rezerwacji
+        { $push: { terms: term } } // Dodanie daty rezerwacji do tablicy terms
+      );
+      console.log("push result", pushResult);
+    }
+
+    const userEmail = reservation.email;
+
+    res.status(200).json({ 
+      message: "Rezerwacja została odrzucona i usunięta z bazy danych.",
+      userEmail,
+      reservation,
+    });
+  } catch (err) {
+    console.error("Błąd podczas odrzucania rezerwacji:", err);
+    res.status(500).json({ error: "Wewnętrzny błąd serwera." });
+  }
+});
+
 
 // Uruchomienie serwera
 app.listen(port, () => {

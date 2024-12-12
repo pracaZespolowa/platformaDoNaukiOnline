@@ -9,6 +9,7 @@ import Login from "./Login";
 import Register from "./Register";
 import Home from "./Home";
 import Zarzadzaj from "./zarzadzaj"; // Importuj nowy komponent
+import Reservations from "./reservations";
 
 function App() {
   const [user, setUser] = useState(() => {
@@ -44,6 +45,10 @@ function App() {
         <Route
           path="/zarzadzaj"
           element={user ? <Zarzadzaj user={user} setUser={setUser} /> : <Navigate to="/" />} // Nowa trasa do zarządzania kontem z przekazanym user
+        />
+        <Route
+          path="/reservations"
+          element={user ? <Reservations user={user} setUser={setUser} /> : <Navigate to="/" />} // Trasa do zarządzania rezerwacjami z przekazanym user
         />
       </Routes>
     </Router>

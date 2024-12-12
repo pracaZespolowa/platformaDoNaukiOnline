@@ -13,12 +13,17 @@ function Home({ user, setUser }) {
     title: "",
     content: "",
     teacher_name: user?.firstName + " " + user?.lastName,
+    teacher_email: user?.email,
     subject: "",
     terms: [],
     tempDate: "",
     tempHour: "",
     tempMinutes: "",
   });
+
+  const [notifications, setNotifications] = useState([]); // Stan powiadomień
+  const [showNotifications, setShowNotifications] = useState(false); // Czy lista powiadomień jest widoczna
+
 
   const [selectedDate, setSelectedDate] = useState(""); // Wybrana data
 
@@ -60,6 +65,8 @@ function Home({ user, setUser }) {
     const updatedTerms = selectedAnnouncement.terms.filter(
       (_, index) => index !== termIndex
     );
+    
+    const email = user?.email;
 
     try {
       const response = await fetch(
@@ -69,13 +76,15 @@ function Home({ user, setUser }) {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ termIndex }),
+          body: JSON.stringify({ termIndex, email }),
         }
       );
 
       console.log("Rezerwacja:", { announcementId, termIndex });
 
       if (response.ok) {
+        const data = await response.json();
+        const { teacher_email } = data;
         setSelectedAnnouncement((prev) => ({
           ...prev,
           terms: updatedTerms,
@@ -89,7 +98,40 @@ function Home({ user, setUser }) {
           )
         );
 
-        alert("Termin został zarezerwowany!");
+        // Tworzymy powiadomienie po rezerwacji do użytkownika
+        const newNotification = {
+          title: "Rezerwacja",
+          message: "Zarezerwowano termin, poczekaj na akceptację!",
+          date: new Date().toISOString(),
+          userEmail: user.email,
+        };
+
+        // Wysyłanie powiadomienia do serwera
+        await fetch("http://localhost:4000/notifications", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newNotification),
+        });
+
+        // Tworzymy powiadomienie po rezerwacji do nauczyciela
+        const newNotificationteacher = {
+          title: "Rezerwacja",
+          message: "Nowa rezerwacja czeka na akceptację!",
+          date: new Date().toISOString(),
+          userEmail: teacher_email,
+        };
+
+        // Wysyłanie powiadomienia do serwera
+        await fetch("http://localhost:4000/notifications", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newNotificationteacher),
+        });
+
       } else {
         console.error("Rezerwacja nie powiodła się");
       }
@@ -121,6 +163,65 @@ function Home({ user, setUser }) {
     fetchAnnouncements();
   }, []);
 
+
+  // pobieranie powiadomien dla bieżącego użytkownika
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const userEmail = user?.email;
+        console.log("Adres email użytkownika:", userEmail);
+        const response = await fetch(
+          `http://localhost:4000/notifications/user/${userEmail}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Odpowiedź z serwera:", data);
+          setNotifications(data.notifications);
+        } else {
+          console.error("Błąd podczas pobierania powiadomień");
+        }
+      } catch (error) {
+        console.error("Błąd serwera:", error);
+      }
+    };
+
+    if (user?.email) {
+      fetchNotifications();
+    }
+  }, [user]);
+
+  // usuwanie powiadomienia
+  const deleteNotification = async (notificationId) => {
+    console.log("Usuwanie powiadomienia:", newAnnouncement);
+    try {
+      const response = await fetch(`http://localhost:4000/notifications/delete/${notificationId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        //Zaktualizowanie stanu po usunięciu powiadomienia
+        setNotifications(prevNotifications => 
+          prevNotifications.filter(notification => notification._id !== notificationId)
+        );
+      } else {
+        console.error("Błąd podczas usuwania powiadomienia");
+      }
+    } catch (error) {
+      console.error("Błąd serwera:", error);
+    }
+  }
+  
+
   const [selectedTermIndex, setSelectedTermIndex] = useState(null);
 
   const handleTermClick = (index) => {
@@ -130,6 +231,10 @@ function Home({ user, setUser }) {
   const toggleOptions = () => {
     setShowOptions((prev) => !prev);
   };
+
+  const handleManageReservations = () => {
+    navigate("/reservations");
+  }
 
   const handleManageAccount = () => {
     navigate("/zarzadzaj");
@@ -162,6 +267,7 @@ function Home({ user, setUser }) {
       title: "",
       content: "",
       teacher_name: user?.firstName + " " + user?.lastName,
+      teacher_email: user?.email,
       subject: "",
       terms: [],
       tempDate: "",
@@ -239,9 +345,42 @@ function Home({ user, setUser }) {
     }));
   };
 
+  // przełączanie widoczności powiadomień
+  const toggleNotifications = () => {
+    setShowNotifications((prev) => !prev);
+  };
+  
+
   return (
     <div className="home-container">
       <header>
+        <div className="notification-bell" onClick={toggleNotifications}>
+          <span role="img" aria-label="Dzwonek">🔔</span>
+          {notifications.length > 0 && (
+            <span className="notification-count">{notifications.length}</span>
+          )}
+          {showNotifications && (
+            <div className="notifications-list">
+              {notifications.length ? (
+                <ul>
+                  {notifications.map((notification, index) => (
+                    <li key={index} className="notification-item">
+                      <h4 className="h4-notification-title">{notification.title}<button 
+                        className="delete-button" 
+                        onClick={() => deleteNotification(notification._id)}
+                      >
+                        X
+                      </button></h4>
+                      <p>{notification.message}</p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>Brak nowych powiadomień.</p>
+              )}
+            </div>
+          )}
+        </div>
         <div
           className="profile"
           onClick={toggleOptions}
@@ -252,6 +391,12 @@ function Home({ user, setUser }) {
           {showOptions && (
             <div className="profile-options">
               <p className="user-email">{user?.email}</p>
+              <button
+                onClick={handleManageReservations}
+                className="manage-account-button"
+              >
+                Zarządzaj rezerwacjami
+              </button>
               <button
                 onClick={handleManageAccount}
                 className="manage-account-button"

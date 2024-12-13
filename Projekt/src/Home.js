@@ -24,7 +24,6 @@ function Home({ user, setUser }) {
   const [notifications, setNotifications] = useState([]); // Stan powiadomień
   const [showNotifications, setShowNotifications] = useState(false); // Czy lista powiadomień jest widoczna
 
-
   const [selectedDate, setSelectedDate] = useState(""); // Wybrana data
 
   // Wygenerowanie unikalnych dat z `terms`
@@ -65,7 +64,7 @@ function Home({ user, setUser }) {
     const updatedTerms = selectedAnnouncement.terms.filter(
       (_, index) => index !== termIndex
     );
-    
+
     const email = user?.email;
 
     try {
@@ -131,7 +130,6 @@ function Home({ user, setUser }) {
           },
           body: JSON.stringify(newNotificationteacher),
         });
-
       } else {
         console.error("Rezerwacja nie powiodła się");
       }
@@ -162,7 +160,6 @@ function Home({ user, setUser }) {
 
     fetchAnnouncements();
   }, []);
-
 
   // pobieranie powiadomien dla bieżącego użytkownika
   useEffect(() => {
@@ -201,17 +198,22 @@ function Home({ user, setUser }) {
   const deleteNotification = async (notificationId) => {
     console.log("Usuwanie powiadomienia:", newAnnouncement);
     try {
-      const response = await fetch(`http://localhost:4000/notifications/delete/${notificationId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await fetch(
+        `http://localhost:4000/notifications/delete/${notificationId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (response.ok) {
         //Zaktualizowanie stanu po usunięciu powiadomienia
-        setNotifications(prevNotifications => 
-          prevNotifications.filter(notification => notification._id !== notificationId)
+        setNotifications((prevNotifications) =>
+          prevNotifications.filter(
+            (notification) => notification._id !== notificationId
+          )
         );
       } else {
         console.error("Błąd podczas usuwania powiadomienia");
@@ -219,8 +221,7 @@ function Home({ user, setUser }) {
     } catch (error) {
       console.error("Błąd serwera:", error);
     }
-  }
-  
+  };
 
   const [selectedTermIndex, setSelectedTermIndex] = useState(null);
 
@@ -234,7 +235,7 @@ function Home({ user, setUser }) {
 
   const handleManageReservations = () => {
     navigate("/reservations");
-  }
+  };
 
   const handleManageAccount = () => {
     navigate("/zarzadzaj");
@@ -349,13 +350,14 @@ function Home({ user, setUser }) {
   const toggleNotifications = () => {
     setShowNotifications((prev) => !prev);
   };
-  
 
   return (
     <div className="home-container">
       <header>
         <div className="notification-bell" onClick={toggleNotifications}>
-          <span role="img" aria-label="Dzwonek">🔔</span>
+          <span role="img" aria-label="Dzwonek">
+            🔔
+          </span>
           {notifications.length > 0 && (
             <span className="notification-count">{notifications.length}</span>
           )}
@@ -365,12 +367,15 @@ function Home({ user, setUser }) {
                 <ul>
                   {notifications.map((notification, index) => (
                     <li key={index} className="notification-item">
-                      <h4 className="h4-notification-title">{notification.title}<button 
-                        className="delete-button" 
-                        onClick={() => deleteNotification(notification._id)}
-                      >
-                        X
-                      </button></h4>
+                      <h4 className="h4-notification-title">
+                        {notification.title}
+                        <button
+                          className="delete-button"
+                          onClick={() => deleteNotification(notification._id)}
+                        >
+                          X
+                        </button>
+                      </h4>
                       <p>{notification.message}</p>
                     </li>
                   ))}
@@ -397,6 +402,13 @@ function Home({ user, setUser }) {
               >
                 Zarządzaj rezerwacjami
               </button>
+              <button
+                className="manage-account-button"
+                onClick={() => navigate(`/chat`)}
+              >
+                Chat
+              </button>
+
               <button
                 onClick={handleManageAccount}
                 className="manage-account-button"

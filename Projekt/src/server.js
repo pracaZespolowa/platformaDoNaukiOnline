@@ -526,39 +526,22 @@ app.get(
 );
 
 // Endpoint do pobierania rezerwacji dla danego nauczyciela
-app.get(
-  "/reservations/teacher/:teacherEmail",
-  cors(corsOptions),
-  async (req, res) => {
-    const { teacherEmail } = req.params;
+app.get("/teachers", cors(corsOptions), async (req, res) => {
+  try {
+    const db = await connectToDb();
+    const teachersCollection = db.collection("reservations");
 
-    if (!teacherEmail) {
-      return res
-        .status(400)
-        .json({ error: "Brak identyfikatora użytkownika." });
-    }
+    //pobierz wszytkich nauczycieli
+    const teachers = await teachersCollection.find({}).toArray();
 
-    try {
-      const db = await connectToDb();
-      const reservationsCollection = db.collection(reservationsCollectionName);
+    console.log(teachers, "nauczyciele");
 
-      const reservations = await reservationsCollection
-        .find({ teacher_email: teacherEmail })
-        .toArray();
-
-      if (reservations.length === 0) {
-        return res.status(404).json({
-          error: "Brak rezerwacji do akceptacji dla tego użytkownika.",
-        });
-      }
-
-      res.status(200).json({ reservations });
-    } catch (err) {
-      console.error("Błąd podczas pobierania rezerwacji:", err);
-      res.status(500).json({ error: "Wewnętrzny błąd serwera" });
-    }
+    res.status(200).json({ teachers });
+  } catch (err) {
+    console.error("Błąd podczas pobierania nauczycieli:", err);
+    res.status(500).json({ error: "Wewnętrzny błąd serwera." });
   }
-);
+});
 
 // Endpoint do akceptacji rezerwacji
 app.get(
@@ -704,8 +687,6 @@ app.delete(
 );
 
 app.get("/chat/teacher", async (req, res) => {
-  console.log("Zapytanie do /chat/teacher:", req.query);
-
   const { email } = req.query;
   if (!email) {
     console.log("Brakuje email w zapytaniu.");
@@ -716,30 +697,63 @@ app.get("/chat/teacher", async (req, res) => {
     const db = await connectToDb();
     const reservationsCollection = db.collection(reservationsCollectionName);
 
-    const reservation = await reservationsCollection.findOne({
-      email: email.trim(),
-      accepted: true,
-    });
-    console.log("Znalezione rezerwacje:", reservation);
+    const reservations = await reservationsCollection
+      .find({ email: email.trim(), accepted: true })
+      .toArray();
 
-    if (!reservation) {
+    console.log("Znalezione rezerwacje:", reservations);
+
+    if (!reservations || reservations.length === 0) {
       return res
         .status(404)
         .json({ error: "Brak zaakceptowanych rezerwacji." });
     }
 
-    const teacher = {
+    const teachers = reservations.map((reservation) => ({
       name: reservation.teacher_name,
       email: reservation.teacher_email,
-      subject: reservation.subject, // Dodano przedmiot
-    };
+      subject: reservation.subject,
+    }));
 
-    console.log("Dane nauczyciela:", teacher);
-
-    res.status(200).json({ teacher });
+    res.status(200).json({ teachers });
   } catch (err) {
-    console.error("Błąd podczas pobierania nauczyciela:", err);
+    console.error("Błąd podczas pobierania nauczycieli:", err);
     res.status(500).json({ error: "Wewnętrzny błąd serwera." });
+  }
+});
+
+app.get("/chat/students", async (req, res) => {
+  const { teacherEmail } = req.query;
+  if (!teacherEmail) {
+    console.log("Brakuje teacheEmail w zapytaniu");
+    return res.status(400).json({ error: "Email nauczyciela jest wymagany" });
+  }
+
+  try {
+    const db = await connectToDb();
+    const reservationsCollection = db.collection(reservationsCollectionName);
+
+    //szukamy zaakceptowanych rezerwacji
+    const reservations = await reservationsCollection
+      .find({ teacher_email: teacherEmail.trim(), accepted: true })
+      .toArray();
+
+    console.log("znalezione rezerwacje przez nauczycieli", reservations);
+
+    if (!reservations || reservations.length == 0) {
+      return res.status(404).json({
+        error: "Brak zaakceptowanych rezerwacji dla tego nauczyciela",
+      });
+    }
+
+    const students = reservations.map((reservation) => ({
+      email: reservation.email, // Email studenta
+      subject: reservation.subject, // Przedmiot zarezerwowany przez studenta
+    }));
+
+    res.status(200).json({ students });
+  } catch (err) {
+    console.error("błąd catch", err);
   }
 });
 

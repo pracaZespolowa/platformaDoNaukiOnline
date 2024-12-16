@@ -121,6 +121,23 @@ function Chat({ user }) {
         const data = await response.json();
         setMessages((prev) => [...prev, data.message]);
         setNewMessage("");
+
+        // Tworzymy powiadomienie po rezerwacji do użytkownika
+        const newNotification = {
+          title: "Wiadomość",
+          message: "Otrzymałeś nową wiadomość!",
+          date: new Date().toISOString(),
+          userEmail: receiverEmail,
+        };
+
+        // Wysyłanie powiadomienia do serwera
+        await fetch("http://localhost:4000/notifications", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newNotification),
+        });
       } else {
         setError("Nie udało się wysłać wiadomości.");
       }

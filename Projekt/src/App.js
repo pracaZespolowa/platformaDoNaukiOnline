@@ -11,6 +11,7 @@ import Home from "./Home";
 import Zarzadzaj from "./zarzadzaj"; // Importuj nowy komponent
 import Reservations from "./reservations";
 import Chat from "./Chat";
+import Kalendarz from "./Kalendarz";
 
 function App() {
   const [user, setUser] = useState(() => {
@@ -46,6 +47,10 @@ function App() {
           } // Przekazujemy setUser do Home
         />
         <Route
+          path="/kalendarz"
+          element={user ? <Kalendarz user={user} /> : <Navigate to="/" />}
+        />
+        <Route
           path="/zarzadzaj"
           element={
             user ? (
@@ -55,6 +60,7 @@ function App() {
             )
           } // Nowa trasa do zarządzania kontem z przekazanym user
         />
+        
         <Route
           path="/reservations"
           element={

@@ -885,6 +885,26 @@ const addUpcomingMeetingNotifications = async () => {
     console.error("Błąd podczas dodawania powiadomień o spotkaniach:", err);
   }
 };
+// Endpoint do pobierania rezerwacji użytkownika
+app.get("/reservations/user/:email", cors(corsOptions), async (req, res) => {
+  const { email } = req.params;
+
+  try {
+    const db = await connectToDb();
+    const reservationsCollection = db.collection(reservationsCollectionName);
+
+    // Pobieranie rezerwacji dla danego użytkownika
+    const reservations = await reservationsCollection
+      .find({ userEmail: email })
+      .toArray();
+
+    res.status(200).json({ reservations });
+  } catch (err) {
+    console.error("Błąd podczas pobierania rezerwacji:", err);
+    res.status(500).json({ error: "Wewnętrzny błąd serwera." });
+  }
+});
+
 
 // Harmonogram - codziennie o 12:00
 cron.schedule("10 12 * * *", addUpcomingMeetingNotifications);

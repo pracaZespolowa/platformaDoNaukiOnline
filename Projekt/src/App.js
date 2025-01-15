@@ -11,6 +11,7 @@ import Home from "./Home";
 import Zarzadzaj from "./zarzadzaj"; // Importuj nowy komponent
 import Reservations from "./reservations";
 import Chat from "./Chat";
+import Reviews from "./Reviews";
 
 function App() {
   const [user, setUser] = useState(() => {
@@ -66,6 +67,7 @@ function App() {
           } // Trasa do zarządzania rezerwacjami z przekazanym user
         />
         <Route path="/chat" element={<Chat user={user} />} />
+        <Route path="/reviews/:teacherId" element={<Reviews />} />
       </Routes>
     </Router>
   );

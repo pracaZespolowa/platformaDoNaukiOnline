@@ -1,0 +1,65 @@
+.reviews-container {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.reviews-container h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.review-item {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 10px;
+  background-color: #f9f9f9;
+}
+
+.review-item h3 {
+  margin: 0 0 5px 0;
+}
+
+.review-item p {
+  margin: 5px 0;
+}
+
+.add-review {
+  margin-top: 20px;
+}
+
+.add-review textarea {
+  width: 100%;
+  height: 100px;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.add-review select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.add-review button {
+  padding: 10px 20px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.add-review button:hover {
+  background-color: #45a049;
+}

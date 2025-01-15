@@ -21,6 +21,10 @@ function Home({ user, setUser }) {
     tempMinutes: "",
   });
 
+  const handleViewReviews = (teacherId) => {
+    navigate(`/reviews/${teacherId}`, { state: { user } });
+  };
+
   const [notifications, setNotifications] = useState([]); // Stan powiadomień
   const [showNotifications, setShowNotifications] = useState(false); // Czy lista powiadomień jest widoczna
 
@@ -78,8 +82,6 @@ function Home({ user, setUser }) {
           body: JSON.stringify({ termIndex, email }),
         }
       );
-
-      console.log("Rezerwacja:", { announcementId, termIndex });
 
       if (response.ok) {
         const data = await response.json();
@@ -166,7 +168,6 @@ function Home({ user, setUser }) {
     const fetchNotifications = async () => {
       try {
         const userEmail = user?.email;
-        console.log("Adres email użytkownika:", userEmail);
         const response = await fetch(
           `http://localhost:4000/notifications/user/${userEmail}`,
           {
@@ -179,7 +180,6 @@ function Home({ user, setUser }) {
 
         if (response.ok) {
           const data = await response.json();
-          console.log("Odpowiedź z serwera:", data);
           setNotifications(data.notifications);
         } else {
           console.error("Błąd podczas pobierania powiadomień");
@@ -196,7 +196,6 @@ function Home({ user, setUser }) {
 
   // usuwanie powiadomienia
   const deleteNotification = async (notificationId) => {
-    console.log("Usuwanie powiadomienia:", newAnnouncement);
     try {
       const response = await fetch(
         `http://localhost:4000/notifications/delete/${notificationId}`,
@@ -280,8 +279,6 @@ function Home({ user, setUser }) {
   const handleAddAnnouncement = async (e) => {
     e.preventDefault();
 
-    console.log("Dodawanie ogłoszenia:", newAnnouncement);
-
     try {
       const response = await fetch("http://localhost:4000/announcements", {
         method: "POST",
@@ -293,7 +290,6 @@ function Home({ user, setUser }) {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("Dodano ogłoszenie:", data.announcement);
         const updatedAnnouncementsResponse = await fetch(
           "http://localhost:4000/announcements"
         );
@@ -481,6 +477,16 @@ function Home({ user, setUser }) {
               X
             </button>
             <h2>{selectedAnnouncement.title}</h2>
+            {user.role === "student" && (
+              <button
+                className="details-button"
+                onClick={() =>
+                  handleViewReviews(selectedAnnouncement.teacher_name)
+                }
+              >
+                Zobacz opinie
+              </button>
+            )}
             <h3>{selectedAnnouncement.teacher_name}</h3>
             <p>{selectedAnnouncement.content}</p>
             <p className="data-ogloszenia">{selectedAnnouncement.date}</p>

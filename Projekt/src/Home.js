@@ -404,6 +404,12 @@ function Home({ user, setUser }) {
               >
                 Chat
               </button>
+              <button
+              className="manage-account-button"
+              onClick={() => navigate(`/Kalendarz`)}  
+            >
+              Kalendarz
+            </button>
 
               <button
                 onClick={handleManageAccount}

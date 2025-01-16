@@ -410,7 +410,7 @@ function Home({ user, setUser }) {
               </button>
               <button
               className="manage-account-button"
-              onClick={() => navigate(`/Kalendar`)}  
+              onClick={() => navigate(`/Kalendarz`)}  
             >
               Kalendarz
             </button>

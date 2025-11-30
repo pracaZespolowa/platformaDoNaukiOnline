@@ -20,7 +20,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 const uri =
-  "mongodb+srv://tomekczyz001:PSKFTfk8sYUWYBva@cluster0.b98di.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0/";
+  "mongodb+srv://tomekczyz001:tcATZLriTPxCgexg@cluster0.b98di.mongodb.net/?appName=Cluster0";
 const dbName = "userAuthDB";
 const collectionName = "users";
 const announcementsCollectionName = "announcements";

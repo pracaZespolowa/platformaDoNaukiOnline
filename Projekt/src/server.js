@@ -27,7 +27,7 @@ const announcementsCollectionName = "announcements";
 const notificationsCollectionName = "notifications";
 const reservationsCollectionName = "reservations";
 const reviewsCollectionName = "reviews";
-const port = 4000;
+const port = process.env.PORT || 4000;
 
 // Funkcja do połączenia z bazą danych
 async function connectToDb() {
@@ -553,7 +553,7 @@ app.get(
           error: "Brak rezerwacji do akceptacji dla tego użytkownika.",
         });
       }
-      
+
       res.status(200).json({ reservations });
     } catch (err) {
       console.error("Błąd podczas pobierania rezerwacji:", err);
@@ -848,10 +848,14 @@ const addUpcomingMeetingNotifications = async () => {
     // Dodaj powiadomienia dla każdej rezerwacji
     for (const reservation of reservations) {
       if (reservation.accepted) {
-        const hour = reservation.date.hour ? String(reservation.date.hour).padStart(2, "0") : "00";
-        const minutes = reservation.date.minutes ? String(reservation.date.minutes).padStart(2, "0") : "00";
+        const hour = reservation.date.hour
+          ? String(reservation.date.hour).padStart(2, "0")
+          : "00";
+        const minutes = reservation.date.minutes
+          ? String(reservation.date.minutes).padStart(2, "0")
+          : "00";
         const meetingTime = `${hour}:${minutes}`;
-        
+
         // Powiadomienie dla ucznia
         const studentNotification = {
           title: "Przypomnienie o spotkaniu",
@@ -860,7 +864,9 @@ const addUpcomingMeetingNotifications = async () => {
           userEmail: reservation.email,
         };
 
-        const user = await usersCollection.findOne({ email: reservation.email });
+        const user = await usersCollection.findOne({
+          email: reservation.email,
+        });
         const userName = `${user.firstName} ${user.lastName}`;
 
         // Powiadomienie dla nauczyciela
@@ -905,7 +911,6 @@ app.get("/reservations/user/:email", cors(corsOptions), async (req, res) => {
     res.status(500).json({ error: "Wewnętrzny błąd serwera." });
   }
 });
-
 
 // Harmonogram - codziennie o 12:00
 cron.schedule("10 12 * * *", addUpcomingMeetingNotifications);

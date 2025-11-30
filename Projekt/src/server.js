@@ -8,10 +8,10 @@ const cron = require("node-cron");
 
 const app = express();
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "/../projekt"))); // Ścieżka do statycznych plików
+app.use(express.static(path.join(__dirname, "/../projekt")));
 
 const corsOptions = {
-  origin: "http://localhost:3000", // Zmień na URL swojej aplikacji front-end
+  origin: ["http://localhost:3000", "https://platformadonauki.netlify.app"],
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true, // Czy zezwalać na przesyłanie ciasteczek
   allowedHeaders: ["Content-Type", "Authorization"],

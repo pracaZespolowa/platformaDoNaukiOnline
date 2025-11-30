@@ -14,7 +14,7 @@ const Reviews = () => {
     const fetchReviews = async () => {
       try {
         const response = await fetch(
-          `http://localhost:4000/reviews/${teacherId}`
+          `https://platforma-backend-xz8b.onrender.com/reviews/${teacherId}`
         );
         if (response.ok) {
           const data = await response.json();
@@ -35,7 +35,7 @@ const Reviews = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:4000/reviews/${teacherId}`,
+        `https://platforma-backend-xz8b.onrender.com/reviews/${teacherId}`,
         {
           method: "POST",
           headers: {

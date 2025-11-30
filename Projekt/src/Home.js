@@ -73,7 +73,7 @@ function Home({ user, setUser }) {
 
     try {
       const response = await fetch(
-        `http://localhost:4000/announcements/${announcementId}/reserve`,
+        `https://platforma-backend-xz8b.onrender.com/announcements/${announcementId}/reserve`,
         {
           method: "POST",
           headers: {
@@ -108,13 +108,16 @@ function Home({ user, setUser }) {
         };
 
         // Wysyłanie powiadomienia do serwera
-        await fetch("http://localhost:4000/notifications", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(newNotification),
-        });
+        await fetch(
+          "https://platforma-backend-xz8b.onrender.com/notifications",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(newNotification),
+          }
+        );
 
         // Tworzymy powiadomienie po rezerwacji do nauczyciela
         const newNotificationteacher = {
@@ -125,13 +128,16 @@ function Home({ user, setUser }) {
         };
 
         // Wysyłanie powiadomienia do serwera
-        await fetch("http://localhost:4000/notifications", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(newNotificationteacher),
-        });
+        await fetch(
+          "https://platforma-backend-xz8b.onrender.com/notifications",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(newNotificationteacher),
+          }
+        );
       } else {
         console.error("Rezerwacja nie powiodła się");
       }
@@ -143,12 +149,15 @@ function Home({ user, setUser }) {
   useEffect(() => {
     const fetchAnnouncements = async () => {
       try {
-        const response = await fetch("http://localhost:4000/announcements", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        const response = await fetch(
+          "https://platforma-backend-xz8b.onrender.com/announcements",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
         if (response.ok) {
           const data = await response.json();
           setAnnouncements(data.announcements);
@@ -169,7 +178,7 @@ function Home({ user, setUser }) {
       try {
         const userEmail = user?.email;
         const response = await fetch(
-          `http://localhost:4000/notifications/user/${userEmail}`,
+          `https://platforma-backend-xz8b.onrender.com/notifications/user/${userEmail}`,
           {
             method: "GET",
             headers: {
@@ -198,7 +207,7 @@ function Home({ user, setUser }) {
   const deleteNotification = async (notificationId) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/notifications/delete/${notificationId}`,
+        `https://platforma-backend-xz8b.onrender.com/notifications/delete/${notificationId}`,
         {
           method: "DELETE",
           headers: {
@@ -280,18 +289,21 @@ function Home({ user, setUser }) {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:4000/announcements", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newAnnouncement),
-      });
+      const response = await fetch(
+        "https://platforma-backend-xz8b.onrender.com/announcements",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newAnnouncement),
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
         const updatedAnnouncementsResponse = await fetch(
-          "http://localhost:4000/announcements"
+          "https://platforma-backend-xz8b.onrender.com/announcements"
         );
         if (updatedAnnouncementsResponse.ok) {
           const updatedData = await updatedAnnouncementsResponse.json();
@@ -405,11 +417,11 @@ function Home({ user, setUser }) {
                 Chat
               </button>
               <button
-              className="manage-account-button"
-              onClick={() => navigate(`/Kalendarz`)}  
-            >
-              Kalendarz
-            </button>
+                className="manage-account-button"
+                onClick={() => navigate(`/Kalendarz`)}
+              >
+                Kalendarz
+              </button>
 
               <button
                 onClick={handleManageAccount}

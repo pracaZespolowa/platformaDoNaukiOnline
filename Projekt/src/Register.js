@@ -11,7 +11,7 @@ function Register({ setUser }) {
   const [role, setRole] = useState(""); // Nowe pole roli
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const apiUrl = "http://localhost:4000";
+  const apiUrl = "https://platforma-backend-xz8b.onrender.com";
 
   const handleRegister = async () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s\d@]+$/;

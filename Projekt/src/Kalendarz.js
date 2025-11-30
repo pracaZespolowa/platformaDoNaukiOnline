@@ -12,22 +12,22 @@ function ScheduleCalendar({ user }) {
   // Funkcja do pobrania rezerwacji
   const fetchReservations = async () => {
     if (!user?.email) return;
-  
+
     try {
       const email = user.email;
       const role = user.role;
       const url =
         role === "teacher"
-          ? `http://localhost:4000/reservations/teacher/${email}`
-          : `http://localhost:4000/reservations/user/${email}`;
-  
+          ? `https://platforma-backend-xz8b.onrender.com/reservations/teacher/${email}`
+          : `https://platforma-backend-xz8b.onrender.com/reservations/user/${email}`;
+
       const response = await fetch(url, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
       });
-  
+
       if (response.ok) {
         const data = await response.json();
         // Konwersja daty na string, jeśli jest obiektem Date
@@ -46,7 +46,6 @@ function ScheduleCalendar({ user }) {
       console.error("Błąd serwera:", error);
     }
   };
-  
 
   useEffect(() => {
     fetchReservations();
@@ -55,7 +54,7 @@ function ScheduleCalendar({ user }) {
   // Funkcja do przekształcania danych na obiekt Date
   const parseReservationDate = (res) => {
     let dateStr;
-  
+
     // Sprawdzenie, czy res.date to string, czy obiekt
     if (typeof res.date === "string") {
       dateStr = res.date; // Jeśli string, używaj go bezpośrednio
@@ -69,14 +68,13 @@ function ScheduleCalendar({ user }) {
       console.error("Nieprawidłowy format daty:", res.date);
       return null; // Zwróć null, jeśli format jest nieobsługiwany
     }
-  
+
     // Split działa na dateStr tylko, jeśli jest poprawnym stringiem
     const [day, month, year] = dateStr.split("-");
     const hours = parseInt(res.hour, 10);
     const minutes = parseInt(res.minute, 10);
     return new Date(year, month - 1, day, hours, minutes);
   };
-  
 
   // Funkcja wyświetlająca zawartość dnia w kalendarzu
   const tileContent = ({ date, view }) => {

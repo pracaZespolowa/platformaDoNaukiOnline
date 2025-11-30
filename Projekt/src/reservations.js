@@ -19,7 +19,7 @@ function Reservations({ user, setUser }) {
         if (role === "teacher") {
           const teacherEmail = user?.email;
           const response = await fetch(
-            `http://localhost:4000/reservations/teacher/${teacherEmail}`,
+            `https://platforma-backend-xz8b.onrender.com/reservations/teacher/${teacherEmail}`,
             {
               method: "GET",
               headers: {
@@ -38,7 +38,7 @@ function Reservations({ user, setUser }) {
         } else {
           const userEmail = user?.email;
           const response = await fetch(
-            `http://localhost:4000/reservations/user/${userEmail}`,
+            `https://platforma-backend-xz8b.onrender.com/reservations/user/${userEmail}`,
             {
               method: "GET",
               headers: {
@@ -69,7 +69,7 @@ function Reservations({ user, setUser }) {
   const handleAcceptReservation = async (reservationId) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/reservation/accept/${reservationId}`,
+        `https://platforma-backend-xz8b.onrender.com/reservation/accept/${reservationId}`,
         {
           method: "GET",
           headers: {
@@ -93,13 +93,16 @@ function Reservations({ user, setUser }) {
         };
 
         // Wysyłanie powiadomienia do serwera
-        await fetch("http://localhost:4000/notifications", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(newNotification),
-        });
+        await fetch(
+          "https://platforma-backend-xz8b.onrender.com/notifications",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(newNotification),
+          }
+        );
       } else {
         setMessage("Błąd podczas akceptacji rezerwacji.");
         console.error("Błąd podczas akceptacji rezerwacji");
@@ -113,7 +116,7 @@ function Reservations({ user, setUser }) {
   const handleDeclineReservation = async (reservationId) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/reservation/decline/${reservationId}`,
+        `https://platforma-backend-xz8b.onrender.com/reservation/decline/${reservationId}`,
         {
           method: "DELETE",
           headers: {
@@ -143,13 +146,16 @@ function Reservations({ user, setUser }) {
         };
 
         // Wysyłanie powiadomienia do serwera
-        await fetch("http://localhost:4000/notifications", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(newNotification),
-        });
+        await fetch(
+          "https://platforma-backend-xz8b.onrender.com/notifications",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(newNotification),
+          }
+        );
       } else {
         console.error("Błąd podczas akceptacji rezerwacji");
       }

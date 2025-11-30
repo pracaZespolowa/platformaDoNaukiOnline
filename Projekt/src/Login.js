@@ -7,7 +7,7 @@ function Login({ setUser }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const apiUrl = 'http://localhost:4000';
+  const apiUrl = "https://platforma-backend-xz8b.onrender.com";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,13 +28,13 @@ function Login({ setUser }) {
         const data = await response.json();
 
         if (response.ok) {
-          const userData = { 
-            email: data.user.email, 
-            firstName: data.user.firstName, 
-            lastName: data.user.lastName, 
-            role: data.user.role 
+          const userData = {
+            email: data.user.email,
+            firstName: data.user.firstName,
+            lastName: data.user.lastName,
+            role: data.user.role,
           };
-          setUser(userData);                             // Przechowuj email w stanie App.js
+          setUser(userData); // Przechowuj email w stanie App.js
           localStorage.setItem("user", JSON.stringify(userData)); // Zapisz dane użytkownika
           navigate("/home"); // Przekierowanie na stronę główną
         } else {

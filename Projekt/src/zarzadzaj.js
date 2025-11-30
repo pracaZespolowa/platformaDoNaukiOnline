@@ -32,18 +32,21 @@ function Zarzadzaj({ user, setUser }) {
       // Wymagania złożoności hasła
       if (newPassword === confPassword) {
         try {
-          const response = await fetch("http://localhost:4000/changePassword", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              email,
-              password,
-              newPassword,
-              confPassword,
-            }),
-          });
+          const response = await fetch(
+            "https://platforma-backend-xz8b.onrender.com/changePassword",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                email,
+                password,
+                newPassword,
+                confPassword,
+              }),
+            }
+          );
 
           const data = await response.json();
 
@@ -73,13 +76,16 @@ function Zarzadzaj({ user, setUser }) {
     }
 
     try {
-      const response = await fetch(`http://localhost:4000/updateUser`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, firstName, lastName, role }),
-      });
+      const response = await fetch(
+        `https://platforma-backend-xz8b.onrender.com/updateUser`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, firstName, lastName, role }),
+        }
+      );
 
       const data = await response.json();
 

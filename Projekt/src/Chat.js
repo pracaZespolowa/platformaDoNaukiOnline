@@ -19,7 +19,7 @@ function Chat({ user }) {
       try {
         if (user.role === "student") {
           const teacherResponse = await fetch(
-            `http://localhost:4000/chat/teacher?email=${user.email}`
+            `https://platforma-backend-xz8b.onrender.com/chat/teacher?email=${user.email}`
           );
           if (teacherResponse.ok) {
             const data = await teacherResponse.json();
@@ -40,7 +40,7 @@ function Chat({ user }) {
           }
         } else if (user.role === "teacher") {
           const studentResponse = await fetch(
-            `http://localhost:4000/chat/students?teacherEmail=${user.email}`
+            `https://platforma-backend-xz8b.onrender.com/chat/students?teacherEmail=${user.email}`
           );
           if (studentResponse.ok) {
             const data = await studentResponse.json();
@@ -71,9 +71,9 @@ function Chat({ user }) {
         let endpoint;
 
         if (user.role === "student" && teacher) {
-          endpoint = `http://localhost:4000/chat/messages?teacherEmail=${teacher.email}&userEmail=${user.email}`;
+          endpoint = `https://platforma-backend-xz8b.onrender.com/chat/messages?teacherEmail=${teacher.email}&userEmail=${user.email}`;
         } else if (user.role === "teacher" && currentStudent) {
-          endpoint = `http://localhost:4000/chat/messages?teacherEmail=${user.email}&userEmail=${currentStudent.email}`;
+          endpoint = `https://platforma-backend-xz8b.onrender.com/chat/messages?teacherEmail=${user.email}&userEmail=${currentStudent.email}`;
         } else {
           return;
         }
@@ -107,15 +107,18 @@ function Chat({ user }) {
     }
 
     try {
-      const response = await fetch(`http://localhost:4000/chat/send`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          senderEmail: user.email,
-          receiverEmail: receiverEmail,
-          content: newMessage,
-        }),
-      });
+      const response = await fetch(
+        `https://platforma-backend-xz8b.onrender.com/chat/send`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            senderEmail: user.email,
+            receiverEmail: receiverEmail,
+            content: newMessage,
+          }),
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -131,13 +134,16 @@ function Chat({ user }) {
         };
 
         // Wysyłanie powiadomienia do serwera
-        await fetch("http://localhost:4000/notifications", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(newNotification),
-        });
+        await fetch(
+          "https://platforma-backend-xz8b.onrender.com/notifications",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(newNotification),
+          }
+        );
       } else {
         setError("Nie udało się wysłać wiadomości.");
       }
